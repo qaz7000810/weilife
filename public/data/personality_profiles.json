@@ -1,0 +1,70 @@
+{
+  "T1": {
+    "name": "滴答獺獺",
+    "description": "喜歡雨天的靜謐節奏，推廣雨水回收與都市友善排水設計，是柔性適應型的生活行動者",
+    "speciality": "不怕下雨，能接受一週多日陰雨；對濕氣有高忍耐力，但怕悶熱；喜歡水氣充足的環境",
+    "match": "冰原企企",
+    "mismatch": "遷移浣熊",
+    "image": "mascot/T1.png",
+    "preferences": {
+      "residence": "濕潤氣候友善區、濕地社區、排水良好社區：桃園市龍潭區",
+      "transport": "願意雨中步行或搭車，不喜歡在雨中騎車或等待交通",
+      "tourism": "偏好雨林、瀑布、濕地，避開乾旱或高溫地區，喜歡有雨的浪漫行程"
+    },
+    "recommendations": {
+      "residence_location": "桃園市龍潭區",
+      "tourism_location": "桃園市觀音區蓮荷園休閒農場"
+    }
+  },
+  "T2": {
+    "name": "冰原企企",
+    "description": "參與氣候教育推廣，是知識型行動者",
+    "speciality": "對氣候變遷非常敏感，關注升溫數字，怕熱、怕雨、怕污染",
+    "match": "滴答獺獺",
+    "mismatch": "沙灘龜龜",
+    "image": "mascot/T2.png",
+    "preferences": {
+      "residence": "日照充足地區、太陽能友善社區、乾燥氣候優先",
+      "transport": "偏好騎自行車、步行，喜歡戶外交通方式",
+      "tourism": "偏好沙漠、高原、陽光海灘，避開多雨或陰霾地區"
+    },
+    "recommendations": {
+      "residence_location": "嘉義市東區",
+      "tourism_location": "新北市林口區林口水牛坑"
+    }
+  },
+  "T3": {
+    "name": "沙灘龜龜",
+    "description": "假日有空就清理海灘垃圾、關心海平面上升議題",
+    "speciality": "可接受熱、討厭下雨、喜歡陽光、喜歡海邊",
+    "match": "遷移浣熊",
+    "mismatch": "冰原企企",
+    "image": "mascot/T3.png",
+    "preferences": {
+      "residence": "氣候穩定區、科技發達社區、創新園區優先",
+      "transport": "偏好智能交通、共享運輸，重視效率與環保",
+      "tourism": "偏好科技館、生態研究中心、氣候觀測站"
+    },
+    "recommendations": {
+      "residence_location": "台東縣太馬里鄉",
+      "tourism_location": "桃園市新屋區永安漁港"
+    }
+  },
+  "T4": {
+    "name": "遷移浣熊",
+    "description": "擁有分析氣候風險與遷徙策略的能力，喜歡探索適應氣候的生活環境",
+    "speciality": "對極端氣候特別敏感，喜歡平穩乾燥的環境，會因懸在未來氣候風險而預先計劃移動",
+    "match":  "冰原企企",
+    "mismatch": "滴答獺獺",
+    "image": "mascot/T4.png",
+    "preferences": {
+      "residence": "農業友善區、生態社區、傳統文化保存地優先",
+      "transport": "偏好大眾運輸、在地交通，重視社區連結",
+      "tourism": "偏好農場體驗、生態保護區、傳統文化景點"
+    },
+    "recommendations": {
+      "residence_location": "台中市西區",
+      "tourism_location": "西竹縣湖口鄉湖口老街"
+  }
+  }
+}

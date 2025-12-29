@@ -1,0 +1,14 @@
+name: Trigger Vercel Deploy
+
+on:
+  push:
+    branches:
+      - main  # 改成你要監控的分支
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Vercel Deploy Hook
+        run: |
+          curl -X POST https://api.vercel.com/v1/integrations/deploy/prj_xxxxxxxx/hook_xxxxxxxx

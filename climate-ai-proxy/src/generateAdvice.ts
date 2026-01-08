@@ -1,9 +1,10 @@
 export default {
   async fetch(req: Request, env: any): Promise<Response> {
+    const origin = req.headers.get("Origin") || undefined;
     if (req.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
-        headers: corsHeaders(),
+        headers: corsHeaders(origin),
       });
     }
 
@@ -11,7 +12,7 @@ export default {
       return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
         status: 405,
         headers: {
-          ...corsHeaders(),
+          ...corsHeaders(origin),
           "Content-Type": "application/json",
         },
       });
@@ -21,8 +22,8 @@ export default {
       // 解析 payload
       const { tab, region } = await req.json();
 
-      // *** 用 GitHub Pages 的 raw json 路徑 ***
-      const DATA_BASE = "https://susan-33333.github.io/climate_quiz/data";
+      // *** 用 GitHub raw json 路徑 ***
+      const DATA_BASE = "https://raw.githubusercontent.com/qaz7000810/weilife/main/src/data";
 
       async function loadJson(file: string) {
         const url = `${DATA_BASE}/${file}`;
@@ -135,7 +136,7 @@ ${summaryStr}
       return new Response(JSON.stringify({ result: advice }), {
         status: 200,
         headers: {
-          ...corsHeaders(),
+          ...corsHeaders(origin),
           "Content-Type": "application/json",
         },
       });
@@ -144,7 +145,7 @@ ${summaryStr}
       return new Response(JSON.stringify({ result: "⚠️ 發生錯誤，請稍後再試。" }), {
         status: 500,
         headers: {
-          ...corsHeaders(),
+          ...corsHeaders(origin),
           "Content-Type": "application/json",
         },
       });
@@ -152,9 +153,14 @@ ${summaryStr}
   },
 };
 
-function corsHeaders() {
+function corsHeaders(origin?: string) {
+  const allowed = new Set([
+    "https://susan-33333.github.io",
+    "https://qaz7000810.github.io",
+  ]);
+  const allowOrigin = allowed.has(origin || "") ? origin : "https://qaz7000810.github.io";
   return {
-    "Access-Control-Allow-Origin": "https://susan-33333.github.io",
+    "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
   };

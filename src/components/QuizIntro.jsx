@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 
 function QuizIntro({ onStart }) {
   const [bgImage, setBgImage] = useState("");
@@ -35,22 +35,19 @@ function QuizIntro({ onStart }) {
           <>
             <button
               onClick={onStart}
-              className="h-[48px] inline-block font-bold text-[16px] bouder-[#ffffff] rounded-[36px] px-4 py-2 text-center text-[#ffffff] bg-[#4452edff] shadow-[0_4px_0_#5d9cd3ff] active:translate-y-[2px] active:shadow-none transition-all duration-150"
+              className="h-[48px] inline-block font-bold text-[16px] border border-[#ffffff] rounded-[36px] px-4 py-2 text-center text-[#ffffff] bg-[#4452edff] shadow-[0_4px_0_#5d9cd3ff] active:translate-y-[2px] active:shadow-none transition-all duration-150"
             >
               開始占卜
             </button>
 
-            <p className="text-[10px] text-gray-600 font-huninn leading-relaxed mt-2">
-              produced by NCDR氣候變遷組<br />
-              台大大氣劉凱岳、中央地科葉珊杉、彰師地理謝侑辰、北市地生莊博文
-            </p>
+            <div className="text-sm text-gray-400 font-huninn leading-relaxed mt-4 space-y-2">
+              <p>國立臺灣大學大氣科學系 劉凱岳</p>
+              <p>國立中央大學地球科學學系 葉珊杉</p>
+              <p>國立彰化師範大學地理學系 謝侑辰</p>
+              <p>臺北市立大學地球環境暨生物資源學系 莊博文</p>
+            </div>
           </>
         )}
-        <p className="text-xs text-[#8f8e8eff] font-huninn leading-relaxed space-y-6">produced by NCDR 氣候變遷組 暑期實習生</p>
-        <p className="text-xs text-[#8f8e8eff] font-huninn leading-relaxed space-y-6">國立臺灣大學大氣科學系 劉凱岳</p>
-        <p className="text-xs text-[#8f8e8eff] font-huninn leading-relaxed space-y-6"> 國立中央大學地球科學學系 葉珊杉</p>
-        <p className="text-xs text-[#8f8e8eff] font-huninn leading-relaxed space-y-6">國立彰化師範大學地理學系 謝侑辰</p> 
-        <p className="text-xs text-[#8f8e8eff] font-huninn leading-relaxed space-y-6">臺北市立大學地球環境暨生物資源學系 莊博文</p> 
       </div>
     </div>
 
@@ -58,3 +55,4 @@ function QuizIntro({ onStart }) {
 }
 
 export default QuizIntro;
+

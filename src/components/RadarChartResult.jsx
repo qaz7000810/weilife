@@ -4,12 +4,10 @@ import html2canvas from "html2canvas";
 import { useState, useEffect } from "react";
 
 function RadarChartResult({ scores, mascot, regionSummary, userData }) {
-  console.log("🐾 RadarChartResult loaded", { scores, mascot, regionSummary, userData });
 
   const [regionScore, setRegionScore] = useState(null);
   const [generatedImageUrl, setGeneratedImageUrl] = useState(null);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [totalScores, setTotalScores] = useState(null);
   const [isLoadingRegionScore, setIsLoadingRegionScore] = useState(false);
   const [regionScoreError, setRegionScoreError] = useState(null);
 
@@ -21,8 +19,6 @@ function RadarChartResult({ scores, mascot, regionSummary, userData }) {
     { category: "樂活度", value: scores?.live || 0 },
     { category: "舒適度", value: scores?.comfortable || 0 },
   ];
-
-  console.log("雷達圖數據:", data);
 
   // 載入地區總分數據
   useEffect(() => {
@@ -46,20 +42,16 @@ function RadarChartResult({ scores, mascot, regionSummary, userData }) {
         }
 
         const scoresData = await response.json();
-        setTotalScores(scoresData);
 
         // 建構地區鍵值，格式為 "縣市_鄉鎮區"
         const regionKey = `${userData.county}_${userData.town}`;
-        console.log("🔍 尋找地區鍵值:", regionKey);
 
         // 檢查該地區是否存在於數據中
         if (scoresData[regionKey]) {
           const score = scoresData[regionKey].綜合;
           setRegionScore(score);
-          console.log("✅ 找到地區分數:", score);
         } else {
           console.warn("❌ 找不到該地區分數:", regionKey);
-          console.log("📍 可用的地區鍵值範例:", Object.keys(scoresData).slice(0, 10));
           
           // 嘗試模糊匹配（可選）
           const similarKeys = Object.keys(scoresData).filter(key => 
@@ -67,7 +59,6 @@ function RadarChartResult({ scores, mascot, regionSummary, userData }) {
           );
           
           if (similarKeys.length > 0) {
-            console.log("🔍 相似的地區鍵值:", similarKeys);
           }
           
           setRegionScoreError(`找不到 ${userData.county} ${userData.town} 的評分資料`);

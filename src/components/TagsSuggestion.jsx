@@ -1,12 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import LivingTab from './TagsTabs/LivingTab';
 import TravelTab from './TagsTabs/TravelTab';
 import TransportTab from './TagsTabs/TransportTab';
-import RingChart from "./TagsTabs/RingChart"; // 只給各Tab用，不直接用
-import { marked } from "marked";
 
 
 const TabsSuggestion = ({ userData, onNext }) => {
+  const apiBase = import.meta.env.VITE_AI_PROXY_URL || "https://climate-ai-proxy.climate-quiz-yuchen.workers.dev";
   const [activeTab, setActiveTab] = useState("居住");
   const [adviceMap, setAdviceMap] = useState({});
   const [loading, setLoading] = useState(false);
@@ -78,7 +77,7 @@ const TabsSuggestion = ({ userData, onNext }) => {
     };
 
     try {
-      const res = await fetch("https://climate-ai-proxy.climate-quiz-yuchen.workers.dev/api/generate-advice", {
+      const res = await fetch(`${apiBase}/api/generate-advice`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

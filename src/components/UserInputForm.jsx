@@ -48,11 +48,13 @@ export default function UserInputForm({ onNext, onSave }) {
     );
   };
 
-  const handleSubmit = () => {
-    if (isValid()) {
-      onSave?.(formData);
-      onNext?.();
+  const handleSubmit = async () => {
+    if (!isValid()) return;
+    if (onSave) {
+      await onSave(formData);
+      return;
     }
+    onNext?.();
   };
 
   if (loading) return <p className="text-center">載入中...</p>;
@@ -133,17 +135,12 @@ export default function UserInputForm({ onNext, onSave }) {
                 className="rounded-[36px] w-[300px] border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-brown-300 focus:outline-none"
               >
                 <option value="">請選擇</option>
-                {townMap[formData.county].map((t) => (
+                {(townMap[formData.county] || []).map((t) => (
                   <option key={t} value={t}>{t}</option>
                 ))}
               </select>
             </div>
           )}
-          <div>
-            <p>
-
-            </p>
-          </div>
           {/* 送出按鈕 */}
           <div className="flex justify-center gap ">
             <button

@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 
 export default function StorySegment({ userData, onNext }) {
+  const apiBase = import.meta.env.VITE_AI_PROXY_URL || "https://climate-ai-proxy.climate-quiz-yuchen.workers.dev";
   const [story, setStory] = useState("");
   const [bgImage, setBgImage] = useState("");
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -28,7 +29,7 @@ export default function StorySegment({ userData, onNext }) {
       setImageLoaded(true);
     };
 
-    fetch("https://climate-ai-proxy.climate-quiz-yuchen.workers.dev/api/generate-story", {
+    fetch(`${apiBase}/api/generate-story`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -91,7 +92,7 @@ export default function StorySegment({ userData, onNext }) {
               <p className="text-3xl leading-relaxed whitespace-pre-line mb-8">{story}</p>
               {story && (
                 <button
-                  className="h-[48px] inline-block font-bold text-[16px] bouder-[#ffffff] rounded-[36px] px-4 py-2 text-center text-[#ffffff] bg-[#4452edff] shadow-[0_4px_0_#5d9cd3ff] active:translate-y-[2px] active:shadow-none transition-all duration-150"
+                  className="h-[48px] inline-block font-bold text-[16px] border border-[#ffffff] rounded-[36px] px-4 py-2 text-center text-[#ffffff] bg-[#4452edff] shadow-[0_4px_0_#5d9cd3ff] active:translate-y-[2px] active:shadow-none transition-all duration-150"
                   onClick={onNext}
                 >
                   我準備好了！
@@ -104,3 +105,4 @@ export default function StorySegment({ userData, onNext }) {
     </div>
   );
 }
+

@@ -20,6 +20,9 @@ function QuizSection({ onNext }) {
   if (loading) return <p className="text-center text-lg">載入中...</p>;
 
   const current = questions[currentIndex];
+  if (!current) {
+    return <p className="text-center text-lg">題庫載入失敗，請稍後再試。</p>;
+  }
 
   function handleSelect(optionKey) {
     setSelected(optionKey);
@@ -36,7 +39,6 @@ function QuizSection({ onNext }) {
       }
     }, 300);
   }
-console.count("🌀 QuizSection Rendered")
   return (
     <div className="min-h-screen bg-[#E0E0E0] flex justify-center px-4 sm:px-8">
       <div className="min-h-screen flex items-center justify-center px-4 relative w-auto max-w-md mx-auto">

@@ -2,9 +2,14 @@ import generateAdvice from "./generateAdvice";
 import generateStory from "./generateStory";
 
 // CORS for API
-function corsHeaders() {
+function corsHeaders(origin?: string) {
+  const allowed = new Set([
+    "https://susan-33333.github.io",
+    "https://qaz7000810.github.io",
+  ]);
+  const allowOrigin = allowed.has(origin || "") ? origin : "https://qaz7000810.github.io";
   return {
-    "Access-Control-Allow-Origin": "https://susan-33333.github.io", // 修改成你前端網域
+    "Access-Control-Allow-Origin": allowOrigin, // 修改成你前端網域
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
   };
@@ -15,10 +20,11 @@ export default {
     const url = new URL(req.url);
 
     // 預檢 OPTIONS (API 跟靜態都支援)
+    const origin = req.headers.get("Origin") || undefined;
     if (req.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
-        headers: corsHeaders(),
+        headers: corsHeaders(origin),
       });
     }
 
@@ -40,7 +46,7 @@ export default {
     // fallback: 保險措施（不太會用到）
     return new Response("404 Not Found", {
       status: 404,
-      headers: corsHeaders(),
+      headers: corsHeaders(origin),
     });
   },
 };

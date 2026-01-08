@@ -1,9 +1,10 @@
 export default {
   async fetch(req: Request, env: any): Promise<Response> {
+    const origin = req.headers.get("Origin") || undefined;
     if (req.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
-        headers: corsHeaders(),
+        headers: corsHeaders(origin),
       });
     }
 
@@ -11,7 +12,7 @@ export default {
       return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
         status: 405,
         headers: {
-          ...corsHeaders(),
+          ...corsHeaders(origin),
           "Content-Type": "application/json",
         },
       });
@@ -61,7 +62,7 @@ export default {
       return new Response(JSON.stringify({ result: story }), {
         status: 200,
         headers: {
-          ...corsHeaders(),
+          ...corsHeaders(origin),
           "Content-Type": "application/json",
         },
       });
@@ -70,7 +71,7 @@ export default {
       return new Response(JSON.stringify({ result: "⚠️ 發生錯誤，請稍後再試。" }), {
         status: 500,
         headers: {
-          ...corsHeaders(),
+          ...corsHeaders(origin),
           "Content-Type": "application/json",
         },
       });
@@ -78,9 +79,14 @@ export default {
   },
 };
 
-function corsHeaders() {
+function corsHeaders(origin?: string) {
+  const allowed = new Set([
+    "https://susan-33333.github.io",
+    "https://qaz7000810.github.io",
+  ]);
+  const allowOrigin = allowed.has(origin || "") ? origin : "https://qaz7000810.github.io";
   return {
-    "Access-Control-Allow-Origin": "https://susan-33333.github.io",
+    "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
   };

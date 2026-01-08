@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 
 function ResultPersonality({ userData, onNext }) {
   const [profile, setProfile] = useState(null);
@@ -81,7 +81,7 @@ function ResultPersonality({ userData, onNext }) {
             </div>
           </div>
 
-          {/* ✅ 修正：穩定顯示角色名稱 */}
+          {/* ? 修正：穩定顯示角色名稱 */}
           <h2 className="text-3xl font-bold mb-6 text-[#4452edff]">
             你是{""}
             <span className="inline-block px-2 py-1 rounded bg-gradient-to-r from-green-300 to-blue-300 text-[#4452edff]">
@@ -103,29 +103,31 @@ function ResultPersonality({ userData, onNext }) {
           </div>
 
           {/* 適合與不適合環境 */}
-            <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl">
-              <h3 className="font-bold text-[#4452edff] mb-2">合拍人格</h3>
-              <p className="text-[#000000] text-sm">{profile.match}</p>
-            </div>
-            <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl">
-              <h3 className="font-bold text-[#4452edff] mb-2">拒絕往來戶</h3>
-             <p className="text-[#000000] text-sm">{profile.mismatch}</p>
-            </div>
+          <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl">
+            <h3 className="font-bold text-[#4452edff] mb-2">合拍人格</h3>
+            <p className="text-[#000000] text-sm">{profile.match}</p>
+          </div>
+          <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl">
+            <h3 className="font-bold text-[#4452edff] mb-2">拒絕往來戶</h3>
+            <p className="text-[#000000] text-sm">{profile.mismatch}</p>
           </div>
 
           <button
             onClick={onNext}
-            className="h-[48px] inline-block font-bold text-[16px] bouder-[#ffffff] rounded-[36px] px-4 py-2 text-center text-[#ffffff] bg-[#4452edff] shadow-[0_4px_0_#5d9cd3ff] active:translate-y-[2px] active:shadow-none transition-all duration-150"
+            className="h-[48px] inline-block font-bold text-[16px] border border-[#ffffff] rounded-[36px] px-4 py-2 text-center text-[#ffffff] bg-[#4452edff] shadow-[0_4px_0_#5d9cd3ff] active:translate-y-[2px] active:shadow-none transition-all duration-150"
           >
-            探索我的氣候適應力🌍
+            探索我的氣候適應力
           </button>
-        </div>
-          <div className="text-center mb-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl">
+
+          <div className="text-center mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl">
             <h3 className="font-sans text-[#666e77ff] mb-2">
               接下來將為您分析居住、交通、旅遊三大領域的氣候適應建議...
             </h3>
           </div>
+        </div>
       </div>
+    </div>
   );
 }
 export default ResultPersonality;
+

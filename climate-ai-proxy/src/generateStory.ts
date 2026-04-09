@@ -1,6 +1,7 @@
 export default {
   async fetch(req: Request, env: any): Promise<Response> {
     const origin = req.headers.get("Origin") || undefined;
+
     if (req.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
@@ -19,25 +20,75 @@ export default {
     }
 
     try {
-      const  { age, county, town, name }  = await req.json();
-      const category = age <= 40 ? "青年" : age <= 65 ? "壯年" : "老年";
-      const prompt = 
-`請用小說敘事風格，撰寫一段GWL4.0 氣候變遷情境下2055年的「${category}篇」故事。主角是現在的使用者本人，描述他／她在未來生活中的一天。
+      const { age, county, town, name } = await req.json();
 
-請根據下列條件撰寫：
--故事發生地點為台灣「${county}${town}」，請融入當地特徵描述。
-- 年齡落在 ${age} 歲，屬於「${category}」年齡階段。
-- 故事背景為極端氣候頻繁（熱浪、淹水、乾旱、冬天消失、公共設施轉變等）
--輸出內容請用第二人稱(你)撰寫
-- 敘事重點放在個人生活轉變、居住條件、防災行動、心理感受與對過去的對比
-- 請自然流露一種「習慣了，但仍隱隱覺得可惜或無奈」的情緒，例如：
-  - 青年：對「從未經歷過冬天」感到好奇與不解
-  - 壯年：懷念曾經的四季與正常通勤生活
-  - 老年：對未來一代的氣候教育感到愧疚或想補償
-- 最後加上一句情感收尾或鼓勵話語，例如：
-  「但也許，從你開始選擇，未來可以不一樣。」
+      const numericAge = Number(age);
+      const safeCounty = String(county || "").trim();
+      const safeTown = String(town || "").trim();
+      const safeName = String(name || "").trim();
 
-輸出長度建議為 110 字內，用繁體中文撰寫。`;
+      if (!safeCounty || !safeTown || Number.isNaN(numericAge)) {
+        return new Response(
+          JSON.stringify({ result: "⚠️ 缺少必要資料，請重新輸入。" }),
+          {
+            status: 400,
+            headers: {
+              ...corsHeaders(origin),
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      }
+
+      const category =
+        numericAge <= 40 ? "青年" : numericAge <= 65 ? "壯年" : "老年";
+
+      const prompt = `
+你是一位「氣候教育互動平台」的故事編輯，請為使用者撰寫一段適合放在網頁上的未來生活片段。
+
+請根據以下條件寫作：
+- 地點：台灣 ${safeCounty}${safeTown}
+- 主角：使用者本人${safeName ? `（名字可自然帶入：${safeName}）` : ""}
+- 年齡：${numericAge} 歲，屬於「${category}」
+- 時間：西元 2055 年，GWL4.0 氣候變遷情境
+- 用第二人稱「你」書寫
+- 使用繁體中文
+- 長度控制在 140～180 字
+- 語氣要有畫面感，但不要太文學、太誇張、太像小說
+- 這段文字要像「你未來某一天的生活片段」，讓不熟悉氣候議題的人也能快速代入
+
+寫作目標：
+1. 讓使用者感受到未來生活真的改變了
+2. 自然埋入 2～3 個可辨識的氣候訊號
+3. 為後面的測驗與結果頁鋪路
+
+內容要求：
+- 必須自然融入當地生活情境或地方感
+- 至少出現以下元素中的任意 2～3 項：
+  - 熱浪 / 高溫
+  - 強降雨 / 積水 / 淹水
+  - 冬天變短或幾乎消失
+  - 通勤或移動方式改變
+  - 旅遊或外出安排改變
+  - 公共設施、防災設備、居住條件改變
+- 情緒基調要是：
+  「你慢慢習慣了這樣的生活，但還是會對過去熟悉的季節與生活方式感到一點可惜或無奈」
+- 年齡層情緒可自然帶入：
+  - 青年：對「從小就不太認識真正冬天」感到好奇與不解
+  - 壯年：懷念曾經較穩定的四季與日常節奏
+  - 老年：對下一代的氣候教育帶著愧疚、提醒或想補償的心情
+- 最後一句要留下微弱但真誠的希望感
+
+禁止事項：
+- 不要寫成科幻小說
+- 不要出現末日、世界崩壞、災難電影式描述
+- 不要用條列式
+- 不要直接解釋氣候指標
+- 不要把主角寫成旁觀者，必須是日常生活中的本人
+- 不要加標題、不要加引號、不要額外解說
+
+請直接輸出故事正文。
+`.trim();
 
       const apiKey = env.OPENAI_API_KEY;
 
@@ -49,15 +100,38 @@ export default {
         },
         body: JSON.stringify({
           model: "gpt-4o",
+          temperature: 0.7,
           messages: [
-            { role: "system", content: "你是一位小說型敘事生成 AI，請用繁體中文回答。" },
+            {
+              role: "system",
+              content:
+                "你是氣候教育互動平台的內容編輯，擅長把氣候變遷寫成一般人看得懂、能代入的未來生活片段。請用繁體中文回答，語氣有畫面感但節制，不要過度文學化。",
+            },
             { role: "user", content: prompt },
           ],
         }),
       });
 
+      if (!openAIRes.ok) {
+        const errText = await openAIRes.text();
+        console.error("OpenAI 故事 API 回應失敗：", errText);
+
+        return new Response(
+          JSON.stringify({ result: "⚠️ 故事生成失敗，請稍後再試。" }),
+          {
+            status: 502,
+            headers: {
+              ...corsHeaders(origin),
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      }
+
       const data = await openAIRes.json();
-      const story = data?.choices?.[0]?.message?.content || "⚠️ 故事生成失敗，請稍後再試。";
+      const story =
+        data?.choices?.[0]?.message?.content?.trim() ||
+        "⚠️ 故事生成失敗，請稍後再試。";
 
       return new Response(JSON.stringify({ result: story }), {
         status: 200,
@@ -68,13 +142,17 @@ export default {
       });
     } catch (err) {
       console.error("故事 API 錯誤：", err);
-      return new Response(JSON.stringify({ result: "⚠️ 發生錯誤，請稍後再試。" }), {
-        status: 500,
-        headers: {
-          ...corsHeaders(origin),
-          "Content-Type": "application/json",
-        },
-      });
+
+      return new Response(
+        JSON.stringify({ result: "⚠️ 發生錯誤，請稍後再試。" }),
+        {
+          status: 500,
+          headers: {
+            ...corsHeaders(origin),
+            "Content-Type": "application/json",
+          },
+        }
+      );
     }
   },
 };
@@ -84,7 +162,11 @@ function corsHeaders(origin?: string) {
     "https://susan-33333.github.io",
     "https://qaz7000810.github.io",
   ]);
-  const allowOrigin = allowed.has(origin || "") ? origin : "https://qaz7000810.github.io";
+
+  const allowOrigin = allowed.has(origin || "")
+    ? origin
+    : "https://qaz7000810.github.io";
+
   return {
     "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Methods": "POST, OPTIONS",

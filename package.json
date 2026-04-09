@@ -2,6 +2,7 @@
   "name": "climate_quiz",
   "homepage": "https://qaz7000810.github.io/weilife",
   "private": true,
+  "type": "module",
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",

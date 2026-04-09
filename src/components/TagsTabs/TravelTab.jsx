@@ -9,7 +9,7 @@ import rainIntensity from "../../data/雨日降雨強度分類.json";
 import rainDays from "../../data/雨日.json";
 import hotExtreme from "../../data/極端高溫持續指數.json"; // 其實是TX90p（極端高溫天數）
 
-const TransportTab = ({ data, regionDisplay, advice, loading, userData }) => {
+const TravelTab = ({ data, regionDisplay, advice, loading, userData }) => {
   const getRegionKey = () => {
     if (userData?.county && userData?.town) {
       return `${userData.county.trim()}_${userData.town.trim()}`;
@@ -156,4 +156,4 @@ const TransportTab = ({ data, regionDisplay, advice, loading, userData }) => {
   );
 };
 
-export default TransportTab;
+export default TravelTab;

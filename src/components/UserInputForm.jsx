@@ -1,39 +1,51 @@
 import { useEffect, useState } from "react";
+import { PrimaryButton } from "./ui/Buttons";
+import SectionHeader from "./ui/SectionHeader";
 
-export default function UserInputForm({ onNext, onSave }) {
-  const [formData, setFormData] = useState({
-    name: "",
-    age: "",
-    county: "",
-    town: ""
-  });
+const initialState = {
+  name: "",
+  age: "",
+  county: "",
+  town: "",
+};
 
+export default function UserInputForm({ onSave, userData = {} }) {
+  const [formData, setFormData] = useState({ ...initialState, ...userData });
   const [townMap, setTownMap] = useState({});
   const [loading, setLoading] = useState(true);
 
   const counties = Object.keys(townMap);
 
   useEffect(() => {
+    let isMounted = true;
+
     fetch(`${import.meta.env.BASE_URL}data/town_data.json`)
-      .then((res) => res.json())
+      .then((response) => response.json())
       .then((data) => {
+        if (!isMounted) return;
         setTownMap(data);
         setLoading(false);
+      })
+      .catch((error) => {
+        console.error("讀取鄉鎮資料失敗", error);
+        if (!isMounted) return;
+        setTownMap({});
+        setLoading(false);
       });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    if (name === "age") {
-      // 僅允許正整數
-      if (!/^\d*$/.test(value)) return;
-    }
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    if (name === "age" && !/^\d*$/.test(value)) return;
 
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-      ...(name === "county" ? { town: "" } : {})
+      ...(name === "county" ? { town: "" } : {}),
     }));
   };
 
@@ -43,119 +55,106 @@ export default function UserInputForm({ onNext, onSave }) {
       formData.name.trim() !== "" &&
       formData.county !== "" &&
       formData.town !== "" &&
-      !isNaN(age) &&
-      age > 3 && age < 100
+      Number.isFinite(age) &&
+      age > 3 &&
+      age < 100
     );
   };
 
-  const handleSubmit = async () => {
-    if (!isValid()) return;
-    if (onSave) {
-      await onSave(formData);
-      return;
-    }
-    onNext?.();
-  };
-
-  if (loading) return <p className="text-center">載入中...</p>;
+  if (loading) {
+    return (
+      <div className="surface-card">
+        <div className="surface-card__body loading-card">
+          <div className="spinner" />
+          <p className="caption">正在整理地區資料，讓你的情境能對應到正確的地方氣候訊號。</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#fdf8f4] flex justify-center px-4">
-      <div className="w-full max-w-md flex flex-col justify-center py-16">
-        <div className="bg-white shadow-md rounded-2xl p-6 space-y-6">
-          <h1 className="text-2xl font-bold text-center text-brown-800">填寫基本資料</h1>
+    <div className="surface-card profile-form-panel">
+      <div className="surface-card__body profile-form-panel__body">
+        <SectionHeader
+          eyebrow="資料輸入"
+          title="填寫基本資料"
+          description="只需要四個欄位。"
+        />
 
-          {/* 暱稱 */}
-          <div className="flex flex-col items-center">
-            <label htmlFor="name" className="text-xl font-bold text-brown-700 mb-1">
-              匿稱
-            </label>
+        <div className="form-fields">
+          <div className="field">
+            <label htmlFor="name">你的名字</label>
             <input
-              type="text"
               id="name"
               name="name"
-              autoComplete="name"
               value={formData.name}
               onChange={handleChange}
-              className="text-center rounded-[36px] w-[300px] border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-brown-300 focus:outline-none"
+              className="input"
+              autoComplete="name"
+              placeholder="例如：小安"
             />
           </div>
 
-          {/* 年齡 */}
-          <div className="flex flex-col items-center">
-            <label htmlFor="age" className="text-xl font-bold text-brown-700 mb-1">
-              年齡
-            </label>
+          <div className="field">
+            <label htmlFor="age">目前年齡</label>
             <input
-              type="number"
               id="age"
               name="age"
-              autoComplete="bday"
               value={formData.age}
               onChange={handleChange}
-              step="1"
+              className="input"
+              autoComplete="bday"
+              inputMode="numeric"
               min="3"
               max="99"
-              className="text-center rounded-[36px] w-[300px] border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-brown-300 focus:outline-none"
+              placeholder="例如：26"
             />
           </div>
 
-          {/* 居住地 */}
-          <div className="flex flex-col items-center">
-            <label htmlFor="county" className="text-xl font-bold text-brown-700 mb-1">
-              居住地
-            </label>
+          <div className="field">
+            <label htmlFor="county">所在縣市</label>
             <select
               id="county"
               name="county"
-              autoComplete="address-level1"
               value={formData.county}
               onChange={handleChange}
-              className="rounded-[36px] w-[300px] border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-brown-300 focus:outline-none"
+              className="select"
+              autoComplete="address-level1"
             >
-              <option value="">請選擇</option>
-              {counties.map((c) => (
-                <option key={c} value={c}>{c}</option>
+              <option value="">請選擇縣市</option>
+              {counties.map((county) => (
+                <option key={county} value={county}>
+                  {county}
+                </option>
               ))}
             </select>
           </div>
 
-          {/* 鄉鎮市區 */}
-          {formData.county && (
-            <div className="flex flex-col items-center">
-              <label htmlFor="town" className="text-xl font-medium text-brown-700 mb-1">
-                鄉鎮市區
-              </label>
+          {formData.county ? (
+            <div className="field">
+              <label htmlFor="town">所在鄉鎮</label>
               <select
                 id="town"
                 name="town"
-                autoComplete="address-level2"
                 value={formData.town}
                 onChange={handleChange}
-                className="rounded-[36px] w-[300px] border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-brown-300 focus:outline-none"
+                className="select"
+                autoComplete="address-level2"
               >
-                <option value="">請選擇</option>
-                {(townMap[formData.county] || []).map((t) => (
-                  <option key={t} value={t}>{t}</option>
+                <option value="">請選擇鄉鎮</option>
+                {(townMap[formData.county] || []).map((town) => (
+                  <option key={town} value={town}>
+                    {town}
+                  </option>
                 ))}
               </select>
             </div>
-          )}
-          {/* 送出按鈕 */}
-          <div className="flex justify-center gap ">
-            <button
-              onClick={handleSubmit}
-              disabled={!isValid()}
-              className={`w-[300px] h-[48px] font-bold text-[16px] rounded-[36px] px-4 py-2 text-center text-[#ffffff] bg-[#4452edff] shadow-[0_4px_0_#5d9cd3ff] active:translate-y-[2px] active:shadow-none transition-all duration-150 ${
-                isValid()
-                  ? "bg-[#4452edff] hover:bg-[#4452edff]"
-                  : "bg-gray-300 cursor-not-allowed"
-              }`}
-            >
-              探索你的氣候占卜
-            </button>
-          </div>
+          ) : null}
         </div>
+
+        <PrimaryButton type="button" onClick={() => onSave?.(formData)} disabled={!isValid()} size="lg">
+          進入 2055 未來情境
+        </PrimaryButton>
       </div>
     </div>
   );

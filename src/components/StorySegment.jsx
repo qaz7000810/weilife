@@ -1,108 +1,159 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { CalendarClock, MapPinned, ThermometerSun } from "lucide-react";
+import { PrimaryButton, SecondaryButton } from "./ui/Buttons";
+import SectionHeader from "./ui/SectionHeader";
+import {
+  buildFallbackStory,
+  buildRegionKey,
+  buildScenarioHighlights,
+  formatRegionName,
+  getProjectedAge,
+  getRegionSignals,
+} from "../lib/climateEngine";
 
-export default function StorySegment({ userData, onNext }) {
-  const apiBase = import.meta.env.VITE_AI_PROXY_URL || "https://climate-ai-proxy.climate-quiz-yuchen.workers.dev";
+function StorySegment({ userData, onNext, stepContent }) {
+  const apiBase =
+    import.meta.env.VITE_AI_PROXY_URL ||
+    "https://climate-ai-proxy.climate-quiz-yuchen.workers.dev";
+  const projectedAge = getProjectedAge(userData.age);
+  const regionKey = buildRegionKey(userData);
+  const regionName = formatRegionName(regionKey);
+  const signals = getRegionSignals(regionKey);
+  const signalCards = buildScenarioHighlights(signals);
+
   const [story, setStory] = useState("");
-  const [bgImage, setBgImage] = useState("");
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [storyLoaded, setStoryLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const age = parseInt(userData.age, 10);
-    if (isNaN(age)) return;
-    const projectedAge = age + 30;
+    let isMounted = true;
 
-    const getAgeCategory = (age) => {
-      if (age <= 40) return "youth";
-      else if (age <= 65) return "adult";
-      else return "elder";
-    };
-
-    const category = getAgeCategory(projectedAge);
-    const base = import.meta.env.BASE_URL || "/";
-    const imageUrl = `${base}mascot/${category}.jpg`;
-
-    const img = new Image();
-    img.src = imageUrl;
-    img.onload = () => {
-      setBgImage(imageUrl);
-      setImageLoaded(true);
-    };
-
-    fetch(`${apiBase}/api/generate-story`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-  name: userData.name,
-  age: projectedAge,
-  county: userData.county,
-  town: userData.town
-}),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("API 回應非 200");
-        return res.json();
-      })
-      .then((data) => {
-        setStory(data.result);
-        setStoryLoaded(true);
-      })
-      .catch((err) => {
-        console.error("生成故事錯誤：", err);
-        setStory("⚠️ 故事載入失敗，請稍後再試。");
-        setStoryLoaded(true);
+    async function generateStory() {
+      setIsLoading(true);
+      const fallbackStory = buildFallbackStory({
+        projectedAge,
+        regionName: formatRegionName(regionKey),
+        signals: getRegionSignals(regionKey),
       });
-  }, [userData]);
 
-  const allLoaded = imageLoaded && storyLoaded;
+      try {
+        const response = await fetch(`${apiBase}/api/generate-story`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: userData.name,
+            age: projectedAge,
+            county: userData.county,
+            town: userData.town,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Story API ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!isMounted) return;
+        const generatedStory = data.result?.trim();
+        if (!generatedStory || generatedStory.length < 120) {
+          setStory(fallbackStory);
+          return;
+        }
+        setStory(generatedStory);
+      } catch (error) {
+        console.error("生成情境故事失敗", error);
+        if (!isMounted) return;
+        setStory(fallbackStory);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    generateStory();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [apiBase, projectedAge, regionKey, userData.county, userData.name, userData.town]);
 
   return (
-    <div className="min-h-screen w-full bg-[#E0E0E0] flex justify-center relative overflow-hidden">
-      {/* 背景圖層 */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[414px] h-screen z-0">
-        <img
-          src={bgImage}
-          alt="背景圖片"
-          className=" w-full h-full object-cover
-      object-center
-      md:object-bottom"
+    <div className="surface-card story-page">
+      <div className="surface-card__body story-page__body">
+        <SectionHeader
+          eyebrow={stepContent?.label}
+          title={`先走進 2055 年的 ${regionName}`}
+          description="先讀完你的未來情境，再開始作答。"
         />
-      </div>
 
-      {/* 載入中遮罩：文字在上、松鼠在下 */}
-      {!allLoaded && (
-        <div className="absolute inset-0 z-20 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center space-y-4">
-          <p className="text-white text-base font-semibold">
-            正在建構你的未來世界⋯⋯
-          </p>
-          <img
-            src={`${import.meta.env.BASE_URL || "/"}mascot/T6.png`}
-            alt="loading mascot"
-            className="w-20 h-20 animate-bounce"
-          />
+        <div className="story-meta-strip">
+          <span className="hero-highlight">
+            <CalendarClock size={16} />
+            時間設定 2055
+          </span>
+          <span className="hero-highlight">
+            <MapPinned size={16} />
+            {regionName}
+          </span>
+          <span className="hero-highlight">
+            <ThermometerSun size={16} />
+            {projectedAge ? `未來年齡 ${projectedAge} 歲` : "未來生活階段"}
+          </span>
         </div>
-      )}
 
-      {/* 主內容顯示區塊 */}
-      {allLoaded && (
-        <div className="absolute inset-0 flex justify-center items-center z-10">
-          <div className="w-full max-w-[414px] px-8 flex justify-center items-center">
-            <div className="bg-white/90 backdrop-blur-sm text-gray-800 rounded-2xl p-6 text-center shadow-lg w-full max-w-[300px]">
-              <h2 className="text-2xl font-bold mb-6">未來30年後的你⋯⋯</h2>
-              <p className="text-3xl leading-relaxed whitespace-pre-line mb-8">{story}</p>
-              {story && (
-                <button
-                  className="h-[48px] inline-block font-bold text-[16px] border border-[#ffffff] rounded-[36px] px-4 py-2 text-center text-[#ffffff] bg-[#4452edff] shadow-[0_4px_0_#5d9cd3ff] active:translate-y-[2px] active:shadow-none transition-all duration-150"
-                  onClick={onNext}
-                >
-                  我準備好了！
-                </button>
-              )}
+        <div className="story-layout">
+          <div className="feature-card story-storycard">
+            {isLoading ? (
+              <div className="loading-card story-loading">
+                <div className="spinner" />
+                <p className="caption">正在生成你的未來生活片段，讓後面的測驗更有代入感。</p>
+              </div>
+            ) : (
+              <div className="story-storycard__content">
+                <div className="story-copy">
+                  {story
+                    .split(/\n{2,}/)
+                    .map((paragraph) => paragraph.trim())
+                    .filter(Boolean)
+                    .map((paragraph) => (
+                      <p key={paragraph} className="story-copy__paragraph">
+                        {paragraph}
+                      </p>
+                    ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <aside className="info-panel story-insight-panel">
+            <div className="story-insight-panel__header">
+              <p className="eyebrow">Local Signals</p>
+              <h3>地區氣候重點</h3>
             </div>
+
+            <div className="story-signal-grid">
+              {signalCards.map((card) => (
+                <article key={card.label} className="story-signal-card">
+                  <p className="story-signal-card__label">{card.label}</p>
+                  <h4>{card.value}</h4>
+                  <p>{card.description}</p>
+                </article>
+              ))}
+            </div>
+          </aside>
+        </div>
+
+        <div className="story-footer">
+          <div className="story-actions">
+            <PrimaryButton onClick={onNext}>開始回答測驗</PrimaryButton>
+            <SecondaryButton type="button" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+              回到故事開頭
+            </SecondaryButton>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
+export default StorySegment;

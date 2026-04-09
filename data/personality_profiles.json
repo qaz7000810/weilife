@@ -8,7 +8,7 @@
     "image": "mascot/T1.png",
     "preferences": {
       "residence": "濕潤氣候友善區、濕地社區、排水良好社區：桃園市龍潭區",
-      "transport": "願意雨中步行或搭車，不喜歡在雨中騎車或等待交通",
+      "transport": "願意雨中步行或搭車，不喜歡在雨中騎車或等待出行接駁",
       "tourism": "偏好雨林、瀑布、濕地，避開乾旱或高溫地區，喜歡有雨的浪漫行程"
     },
     "recommendations": {
@@ -25,7 +25,7 @@
     "image": "mascot/T2.png",
     "preferences": {
       "residence": "日照充足地區、太陽能友善社區、乾燥氣候優先",
-      "transport": "偏好騎自行車、步行，喜歡戶外交通方式",
+      "transport": "偏好騎自行車、步行，喜歡戶外出行方式",
       "tourism": "偏好沙漠、高原、陽光海灘，避開多雨或陰霾地區"
     },
     "recommendations": {
@@ -42,7 +42,7 @@
     "image": "mascot/T3.png",
     "preferences": {
       "residence": "氣候穩定區、科技發達社區、創新園區優先",
-      "transport": "偏好智能交通、共享運輸，重視效率與環保",
+      "transport": "偏好智慧出行、共享運輸，重視效率與環保",
       "tourism": "偏好科技館、生態研究中心、氣候觀測站"
     },
     "recommendations": {
@@ -59,7 +59,7 @@
     "image": "mascot/T4.png",
     "preferences": {
       "residence": "農業友善區、生態社區、傳統文化保存地優先",
-      "transport": "偏好大眾運輸、在地交通，重視社區連結",
+      "transport": "偏好大眾運輸、在地出行，重視社區連結",
       "tourism": "偏好農場體驗、生態保護區、傳統文化景點"
     },
     "recommendations": {

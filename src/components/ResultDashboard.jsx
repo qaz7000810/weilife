@@ -8,30 +8,21 @@ import {
   RadarChart,
   ResponsiveContainer,
 } from "recharts";
-import {
-  Download,
-  Home,
-  Lightbulb,
-  MapPinned,
-  Plane,
-  Route,
-  Share2,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Home, Plane, Route, Share2 } from "lucide-react";
 import { buildResultAnalysis } from "../lib/climateEngine";
 import { PrimaryButton, SecondaryButton } from "./ui/Buttons";
-import MetricCard from "./ui/MetricCard";
 import RiskBadge from "./ui/RiskBadge";
 
 const apiBase =
   import.meta.env.VITE_AI_PROXY_URL ||
   "https://climate-ai-proxy.climate-quiz-yuchen.workers.dev";
 const publicShareUrl = "https://qaz7000810.github.io/weilife";
-const BRAND_NAME = "未來氣候占卜師 未LIFE";
+const BRAND_NAME = "WEILIFE Climate Life Report";
 
 const areaConfigs = [
-  { key: "living", label: "居住", subtitle: "家與日常環境", apiLabel: "居住", icon: Home },
-  { key: "transport", label: "交通", subtitle: "通勤與移動方式", apiLabel: "交通", icon: Route },
-  { key: "travel", label: "旅遊", subtitle: "出遊與行程安排", apiLabel: "旅遊", icon: Plane },
+  { key: "living", label: "居住", subtitle: "住起來舒不舒服", apiLabel: "居住", icon: Home },
+  { key: "transport", label: "出行", subtitle: "移動會不會變麻煩", apiLabel: "出行", icon: Route },
+  { key: "travel", label: "遊憩", subtitle: "出門彈性還剩多少", apiLabel: "遊憩", icon: Plane },
 ];
 
 function PreferenceRadar({
@@ -47,24 +38,24 @@ function PreferenceRadar({
       ? {
           grid: "rgba(255,255,255,0.18)",
           tick: "#e2e8f0",
-          stroke: "#60a5fa",
-          fill: "#2563eb",
+          stroke: "#f472b6",
+          fill: "#ec4899",
           fillOpacity: 0.22,
         }
       : {
           grid: "rgba(148,163,184,0.28)",
           tick: "#334155",
-          stroke: "#2563eb",
-          fill: "#60a5fa",
-          fillOpacity: 0.26,
+          stroke: "#ec4899",
+          fill: "#f472b6",
+          fillOpacity: 0.22,
         };
 
   const data = [
-    { subject: "生活彈性", value: scores.happiness || 0 },
-    { subject: "調適意願", value: scores.adaptability || 0 },
-    { subject: "移動便利", value: scores.convenience || 0 },
-    { subject: "居住韌性", value: scores.live || 0 },
-    { subject: "氣候舒適", value: scores.comfortable || 0 },
+    { subject: "幸福感", value: scores.happiness || 0 },
+    { subject: "適應力", value: scores.adaptability || 0 },
+    { subject: "便利性", value: scores.convenience || 0 },
+    { subject: "宜居性", value: scores.live || 0 },
+    { subject: "舒適度", value: scores.comfortable || 0 },
   ];
 
   return (
@@ -74,7 +65,7 @@ function PreferenceRadar({
           <PolarGrid stroke={palette.grid} />
           <PolarAngleAxis
             dataKey="subject"
-            tick={{ fill: palette.tick, fontSize: labelSize, fontWeight: 600 }}
+            tick={{ fill: palette.tick, fontSize: labelSize, fontWeight: 700 }}
             tickLine={false}
             axisLine={false}
           />
@@ -97,6 +88,12 @@ function renderMarkdown(content) {
   };
 }
 
+function getAreaScoreTone(score) {
+  if (score >= 70) return "high";
+  if (score >= 45) return "medium";
+  return "low";
+}
+
 function ResultDashboard({ userData, onRestart }) {
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -106,13 +103,14 @@ function ResultDashboard({ userData, onRestart }) {
   const [shareStatus, setShareStatus] = useState("");
   const [shareAction, setShareAction] = useState("");
   const [activeArea, setActiveArea] = useState("living");
+  const [resultPage, setResultPage] = useState("summary");
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadAnalysis() {
       if (!userData?.answers?.length) {
-        setError("缺少作答資料，暫時無法建立你的結果報告。");
+        setError("缺少測驗答案，請重新開始。");
         setLoading(false);
         return;
       }
@@ -145,9 +143,9 @@ function ResultDashboard({ userData, onRestart }) {
           })
         );
       } catch (fetchError) {
-        console.error("讀取結果資料失敗", fetchError);
+        console.error("Failed to build result analysis.", fetchError);
         if (!isMounted) return;
-        setError("結果資料暫時無法載入，請稍後再試。");
+        setError("結果資料載入失敗，請稍後再試。");
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -195,7 +193,7 @@ function ResultDashboard({ userData, onRestart }) {
             if (!isMounted) return;
             setAdviceMap((prev) => ({ ...prev, [area.key]: data.result || "" }));
           } catch (adviceError) {
-            console.error(`${area.label} 建議載入失敗`, adviceError);
+            console.error(`${area.label} advice failed.`, adviceError);
             if (!isMounted) return;
             setAdviceMap((prev) => ({ ...prev, [area.key]: "" }));
           } finally {
@@ -231,7 +229,7 @@ function ResultDashboard({ userData, onRestart }) {
       <div className="surface-card">
         <div className="surface-card__body loading-card">
           <div className="spinner" />
-          <p className="caption">正在生成你的結果報告。</p>
+          <p className="caption">正在整理你的結果。</p>
         </div>
       </div>
     );
@@ -241,7 +239,7 @@ function ResultDashboard({ userData, onRestart }) {
     return (
       <div className="surface-card">
         <div className="surface-card__body loading-card">
-          <p className="caption">{error || "結果暫時無法顯示。"}</p>
+          <p className="caption">{error || "目前無法顯示結果。"}</p>
           <SecondaryButton type="button" onClick={onRestart}>
             重新開始
           </SecondaryButton>
@@ -253,7 +251,17 @@ function ResultDashboard({ userData, onRestart }) {
   const displayName = userData?.name?.trim() || "你";
   const personaName = analysis.personalityProfile.name || analysis.personalityProfile.type;
   const strongestPreference = analysis.preferenceExtremes.strongest[0];
-  const weakestPreference = analysis.preferenceExtremes.weakest[0];
+  const heroTitle = `你是「${personaName}」`;
+  const heroSummary =
+    analysis.personalityProfile.story || analysis.personalityProfile.description || analysis.lifeSummary;
+  const matchProfile = analysis.personalityProfile.matchProfile || {
+    name: analysis.personalityProfile.match,
+    image: null,
+  };
+  const mismatchProfile = analysis.personalityProfile.mismatchProfile || {
+    name: analysis.personalityProfile.mismatch,
+    image: null,
+  };
   const rankedAreas = areaConfigs
     .map((area) => ({
       ...area,
@@ -264,23 +272,30 @@ function ResultDashboard({ userData, onRestart }) {
   const activeInsight = analysis.areaInsights[activeArea] || analysis.areaInsights.living;
   const activeTab = areaConfigs.find((item) => item.key === activeArea) || areaConfigs[0];
   const ActiveAreaIcon = activeTab.icon;
+  const primaryAreaLabel = rankedAreas[0]?.label || activeTab.label;
 
-  const shareTitle = `${displayName} 的 2055 氣候生活報告`;
+  const shareTitle = `${displayName} 的約 30 年後氣候生活結果`;
   const shareText = `${shareTitle}
 ${analysis.headline}
-最需要留意：${rankedAreas[0]?.label || activeTab.label}
+我最需要留意的是 ${rankedAreas[0]?.label || activeTab.label}
 ${publicShareUrl}`;
-  const shareFileName = `${BRAND_NAME}-${analysis.regionName}-${personaName}.png`.replace(/[\\/:*?"<>|]/g, "-");
-  const shareSummaryItems = [
-    { label: "角色", value: personaName },
-    { label: "地區", value: analysis.regionName },
-    { label: "優先面向", value: rankedAreas[0]?.label || activeTab.label },
-  ];
+  const shareFileName = `${BRAND_NAME}-${analysis.regionName}-${personaName}.png`.replace(
+    /[\\/:*?"<>|]/g,
+    "-"
+  );
+  const shareAreaItems = rankedAreas.map((area) => ({
+    label: area.label,
+    value: area.value,
+    tone: getAreaScoreTone(area.value),
+  }));
+  const personaAnsweredCount = analysis.personaComposition[0]?.answeredCount || 0;
+  const personaQuestionCount = Math.max(userData.answers?.length || 0, personaAnsweredCount);
+  const hasMissingPersonaAnswers = personaQuestionCount > personaAnsweredCount;
 
   async function captureShareCard() {
     const target = document.getElementById("share-capture-target");
     if (!target) {
-      throw new Error("找不到分享卡。");
+      throw new Error("Share card target not found.");
     }
 
     const canvas = await html2canvas(target, {
@@ -297,7 +312,7 @@ ${publicShareUrl}`;
           resolve(value);
           return;
         }
-        reject(new Error("分享卡轉換失敗。"));
+        reject(new Error("Failed to create blob."));
       }, "image/png");
     });
 
@@ -315,10 +330,10 @@ ${publicShareUrl}`;
       link.href = dataUrl;
       link.download = shareFileName;
       link.click();
-      setShareStatus("分享卡已下載。");
+      setShareStatus("結果圖已下載。");
     } catch (shareError) {
-      console.error("下載分享卡失敗", shareError);
-      window.alert("目前無法下載分享卡，請稍後再試。");
+      console.error("Download share card failed.", shareError);
+      window.alert("目前無法下載結果圖，請稍後再試。");
     } finally {
       setShareAction("");
     }
@@ -349,47 +364,52 @@ ${publicShareUrl}`;
           payload.files = [file];
         }
       } catch (captureError) {
-        console.error("分享卡擷取失敗", captureError);
+        console.error("Capture before share failed.", captureError);
       }
 
       await navigator.share(payload);
-      setShareStatus("結果已分享。");
+      setShareStatus("分享成功。");
     } catch (shareError) {
       if (shareError?.name !== "AbortError") {
-        console.error("分享失敗", shareError);
-        window.alert("目前無法分享，請稍後再試。");
+        console.error("Share failed.", shareError);
+        window.alert("目前無法分享結果，請稍後再試。");
       }
     } finally {
       setShareAction("");
     }
   }
 
+  function handleResultPageChange(nextPage) {
+    setResultPage(nextPage);
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+
   return (
     <div className="result-page result-page--product">
+      {resultPage === "summary" ? (
+        <>
       <section className="surface-card">
-        <div className="surface-card__body result-summary">
+        <div className="surface-card__body result-summary result-summary--hero">
           <div className="result-summary__main">
-            <div className="result-summary__topline">
-              <span className="hero-highlight">
-                <MapPinned size={16} />
-                {analysis.regionName}
-              </span>
-              <RiskBadge tone={analysis.overallStatus.tone}>{analysis.overallStatus.label}</RiskBadge>
+            <div className="result-summary__headline result-summary__headline--hero">
+              <p className="eyebrow">測驗結果</p>
+              <h2>{heroTitle}</h2>
+              <p>{heroSummary}</p>
             </div>
 
-            <div className="result-summary__headline">
-              <h2>{analysis.headline}</h2>
-              <p>{analysis.lifeSummary}</p>
-            </div>
-
-            <div className="result-summary__persona">
+            <div className="result-summary__persona result-summary__persona--hero">
               <div className="result-summary__persona-copy">
-                <p className="result-summary__label">你的角色</p>
-                <h3>{personaName}</h3>
-                <p>{analysis.personalityProfile.description}</p>
+                <p className="result-summary__label">未來生活提醒</p>
+                <h3>{strongestPreference.label}</h3>
+                <p>
+                  <strong>{analysis.regionName}</strong>：{analysis.overallStatus.label}，最需要留意
+                  {primaryAreaLabel}。
+                </p>
               </div>
               {analysis.personalityProfile.image ? (
-                <div className="result-summary__avatar">
+                <div className="result-summary__avatar result-summary__avatar--hero">
                   <img
                     src={analysis.personalityProfile.image}
                     alt={personaName}
@@ -399,49 +419,85 @@ ${publicShareUrl}`;
               ) : null}
             </div>
 
-            <div className="result-summary__metrics">
-              {analysis.summarySignals.map((item) => (
-                <MetricCard
-                  key={item.label}
-                  label={item.label}
-                  value={item.value}
-                  description={item.description}
-                />
-              ))}
+            <div className="result-summary__insights">
+              <div className="result-score-panel result-score-panel--hero">
+                <p className="result-summary__label">地區平均分數</p>
+                <div className="result-score-panel__value">
+                  <span>{analysis.overallScore}</span>
+                  <small>/100</small>
+                </div>
+                <p>{analysis.overallComparison}</p>
+              </div>
+
+              <article className="result-focus-card result-focus-card--hero result-relationship-card">
+                <p className="result-summary__label">合拍人格</p>
+                {matchProfile.image ? (
+                  <img
+                    src={matchProfile.image}
+                    alt={matchProfile.name}
+                    className="result-relationship-card__image"
+                  />
+                ) : null}
+                <h4>{matchProfile.name || "資料整理中"}</h4>
+              </article>
+
+              <article className="result-focus-card result-focus-card--hero result-focus-card--soft result-relationship-card">
+                <p className="result-summary__label">拒絕往來戶</p>
+                {mismatchProfile.image ? (
+                  <img
+                    src={mismatchProfile.image}
+                    alt={mismatchProfile.name}
+                    className="result-relationship-card__image"
+                  />
+                ) : null}
+                <h4>{mismatchProfile.name || "資料整理中"}</h4>
+              </article>
             </div>
           </div>
 
-          <aside className="result-summary__aside">
-            <div className="result-score-panel">
-              <p className="result-summary__label">總體分數</p>
-              <div className="result-score-panel__value">
-                <span>{analysis.overallScore}</span>
-                <small>/100</small>
-              </div>
-              <p>{analysis.overallComparison}</p>
-            </div>
-
-            <div className="result-radar-card result-radar-card--product">
-              <p className="result-summary__label">偏好輪廓</p>
+          <aside className="result-summary__aside result-summary__aside--hero">
+            <div className="result-radar-card result-radar-card--product result-radar-card--summary">
+              <p className="result-summary__label">偏好雷達圖</p>
               <PreferenceRadar
                 scores={analysis.preferenceScores}
-                height={248}
-                outerRadius={78}
-                labelSize={13}
+                height={220}
+                outerRadius={70}
+                labelSize={12}
               />
             </div>
 
-            <div className="result-focus-grid">
-              <article className="result-focus-card">
-                <p className="result-summary__label">最強偏好</p>
-                <h4>{strongestPreference.label}</h4>
-                <p>{strongestPreference.value} / 100</p>
-              </article>
-              <article className="result-focus-card result-focus-card--soft">
-                <p className="result-summary__label">較弱偏好</p>
-                <h4>{weakestPreference.label}</h4>
-                <p>{weakestPreference.value} / 100</p>
-              </article>
+            <div className="result-composition-card">
+              <div className="result-composition-card__header">
+                <p className="result-summary__label">角色組成</p>
+                <span className="caption">依答題分布換算</span>
+              </div>
+
+              <div className="result-composition-list">
+                {analysis.personaComposition.map((item) => (
+                  <article key={item.type} className="result-composition-item">
+                    <div className="result-composition-item__meta">
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="result-composition-item__image"
+                        />
+                      ) : null}
+                      <div>
+                        <h4>{item.name}</h4>
+                        <p>{item.count} / {userData.answers.length} 題</p>
+                      </div>
+                    </div>
+
+                    <div className="result-composition-item__stat">
+                      <strong>{item.percentage}%</strong>
+                      <div className="result-composition-item__bar">
+                        <span style={{ width: `${item.percentage}%` }} />
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
             </div>
 
             <div className="result-summary__actions">
@@ -454,11 +510,11 @@ ${publicShareUrl}`;
                 onClick={handleDownloadShareCard}
                 disabled={Boolean(shareAction)}
               >
-                {shareAction === "download" ? "下載中..." : "下載分享卡"}
+                {shareAction === "download" ? "下載中..." : "下載結果圖"}
                 <Download size={16} />
               </SecondaryButton>
               <SecondaryButton type="button" onClick={onRestart}>
-                重新開始
+                重新測驗
               </SecondaryButton>
             </div>
 
@@ -468,24 +524,109 @@ ${publicShareUrl}`;
       </section>
 
       <section className="surface-card">
+        <div className="surface-card__body result-composition-section">
+          <div className="result-composition-card">
+            <div className="result-composition-card__header">
+              <div>
+                <p className="eyebrow">角色組成</p>
+                <h3>角色占比</h3>
+              </div>
+              <div className="result-composition-card__summary">
+                <span className="caption">依有效作答換算</span>
+                <strong>{personaAnsweredCount} / {personaQuestionCount} 題</strong>
+              </div>
+            </div>
+
+            {hasMissingPersonaAnswers ? (
+              <p className="caption result-composition-card__note">
+                目前資料中有 {personaQuestionCount - personaAnsweredCount} 題沒有有效選項，所以角色組成是依已作答題目計算。
+              </p>
+            ) : null}
+
+            <div className="result-composition-list result-composition-list--section">
+              {analysis.personaComposition.map((item) => (
+                <article key={item.type} className="result-composition-item">
+                  <div className="result-composition-item__meta">
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="result-composition-item__image"
+                      />
+                    ) : null}
+                    <div>
+                      <h4>{item.name}</h4>
+                      <p>{item.count} / {personaQuestionCount} 題</p>
+                    </div>
+                  </div>
+
+                  <div className="result-composition-item__stat">
+                    <strong>{item.percentage}%</strong>
+                    <div className="result-composition-item__bar">
+                      <span style={{ width: `${item.percentage}%` }} />
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="surface-card">
+        <div className="surface-card__body result-page-nav result-page-nav--next">
+          <div>
+            <p className="eyebrow">第 2 頁</p>
+            <h3>查看生活面向與行動建議</h3>
+            <p>下一頁會整理你最需要注意的面向、判斷依據、雷達圖與可執行建議。</p>
+          </div>
+          <PrimaryButton type="button" onClick={() => handleResultPageChange("details")}>
+            看詳細報告
+            <ChevronRight size={16} />
+          </PrimaryButton>
+        </div>
+      </section>
+        </>
+      ) : null}
+
+      {resultPage === "details" ? (
+        <>
+      <section className="surface-card">
+        <div className="surface-card__body result-page-nav result-page-nav--back">
+          <SecondaryButton type="button" onClick={() => handleResultPageChange("summary")}>
+            <ChevronLeft size={16} />
+            回到結果摘要
+          </SecondaryButton>
+          <div>
+            <p className="eyebrow">第 2 頁</p>
+            <h3>生活面向與行動建議</h3>
+          </div>
+        </div>
+      </section>
+
+      <section className="surface-card">
         <div className="surface-card__body result-priority">
           <div className="result-section-heading">
             <div>
-              <p className="eyebrow">Priority</p>
-              <h3>優先查看的生活面向</h3>
+              <p className="eyebrow">先看這裡</p>
+              <h3>{analysis.regionName}的三個生活面向分數</h3>
             </div>
+            <p className="result-area-hint">點選面向切換下方分析</p>
           </div>
 
-          <div className="result-area-list">
+          <div className="result-area-list result-area-list--cards">
             {rankedAreas.map((area) => {
               const Icon = area.icon;
               const isActive = area.key === activeArea;
+              const scoreTone = getAreaScoreTone(area.value);
 
               return (
                 <button
                   key={area.key}
                   type="button"
-                  className={`result-area-button ${isActive ? "is-active" : ""}`}
+                  className={`result-area-button result-area-button--hero result-area-button--score-${scoreTone} ${
+                    isActive ? "is-active" : ""
+                  }`}
                   onClick={() => setActiveArea(area.key)}
                 >
                   <div className="result-area-button__top">
@@ -493,17 +634,18 @@ ${publicShareUrl}`;
                       <Icon size={16} />
                       {area.label}
                     </span>
-                    <RiskBadge tone={area.insight.status.tone}>{area.insight.status.educationLabel}</RiskBadge>
+                    <RiskBadge tone={area.insight.status.tone}>{area.insight.status.label}</RiskBadge>
                   </div>
-                  <h4>{area.subtitle}</h4>
-                  <p>{area.insight.summary}</p>
-                  <strong>{area.value} / 100</strong>
+                  <div className="result-area-button__score">
+                    <strong className="result-area-button__score-value">{area.value} / 100</strong>
+                    <p>{area.subtitle}</p>
+                  </div>
                 </button>
               );
             })}
           </div>
 
-          <div className={`area-card area-card--${activeTab.key} area-card--product`}>
+          <div className={`area-card area-card--${activeTab.key} area-card--focused`}>
             <div className="area-card__hero">
               <div className="area-card__intro">
                 <span className="hero-highlight">
@@ -515,74 +657,58 @@ ${publicShareUrl}`;
               </div>
 
               <div className="area-card__scorebox">
-                <div className="score-pill">
+                <div className={`score-pill score-pill--${getAreaScoreTone(activeInsight.score)}`}>
                   <span className="score-pill__value">{activeInsight.score}</span>
                   <span className="score-pill__suffix">/100</span>
                 </div>
-                <RiskBadge tone={activeInsight.status.tone}>{activeInsight.status.label}</RiskBadge>
               </div>
             </div>
 
-            <div className="result-detail-grid">
-              <article className="feature-card result-detail-card">
-                <p className="result-summary__label">生活感受</p>
-                <h4>{activeInsight.lifeImpact}</h4>
-                <p>{activeInsight.comparison}</p>
-              </article>
-
-              <article className="feature-card result-detail-card result-detail-card--preference">
-                <p className="result-summary__label">偏好對應</p>
-                <h4>{activeInsight.personalNote}</h4>
-                <p>{activeInsight.explanation}</p>
-              </article>
-
-              <article className="feature-card result-detail-card result-detail-card--full">
-                <div className="result-detail-card__heading">
-                  <div>
-                    <p className="result-summary__label">地方證據</p>
-                    <h4>{activeInsight.evidenceTitle}</h4>
+            <div className="result-analysis-panel">
+              <div className="result-detail-grid">
+                <article className="feature-card result-detail-card result-detail-card--full">
+                  <div className="result-detail-card__heading">
+                    <div>
+                      <p className="result-summary__label">判斷依據</p>
+                      <h4>{activeInsight.evidenceTitle}</h4>
+                    </div>
                   </div>
-                </div>
 
-                <ul className="result-evidence-list">
-                  {activeInsight.evidence.map((item) => (
-                    <li key={item.label}>
-                      <strong>{item.label}</strong>
-                      <span>{item.value}</span>
-                      {item.detail ? <p>{item.detail}</p> : null}
-                    </li>
-                  ))}
-                </ul>
-              </article>
-
-              <article className="feature-card result-detail-card result-detail-card--full">
-                <div className="result-detail-card__heading">
-                  <div>
-                    <p className="result-summary__label">行動建議</p>
-                    <h4>{activeInsight.reminderTitle}</h4>
-                    <p>{activeInsight.bestReminder}</p>
-                  </div>
-                  <span className="hero-highlight">
-                    <Lightbulb size={16} />
-                    下一步
-                  </span>
-                </div>
-
-                {loadingMap[activeArea] ? (
-                  <p className="caption">正在整理建議...</p>
-                ) : adviceMap[activeArea] ? (
-                  <div
-                    className="markdown-content result-markdown"
-                    dangerouslySetInnerHTML={renderMarkdown(adviceMap[activeArea])}
-                  />
-                ) : (
-                  <ul className="data-list">
-                    {activeInsight.fallbackAdvice.map((item) => (
-                      <li key={item}>{item}</li>
+                  <ul className="result-evidence-list">
+                    {activeInsight.evidence.map((item) => (
+                      <li key={item.label}>
+                        <strong>{item.label}</strong>
+                        <span>{item.value}</span>
+                        {item.detail ? <p>{item.detail}</p> : null}
+                      </li>
                     ))}
                   </ul>
-                )}
-              </article>
+                </article>
+
+                <article className="feature-card result-detail-card result-detail-card--full">
+                  <div className="result-detail-card__heading">
+                    <div>
+                      <p className="result-summary__label">建議內容</p>
+                      <h4>{activeInsight.reminderTitle}</h4>
+                    </div>
+                  </div>
+
+                  {loadingMap[activeArea] ? (
+                    <p className="caption">正在整理這個面向的建議...</p>
+                  ) : adviceMap[activeArea] ? (
+                    <div
+                      className="markdown-content result-markdown"
+                      dangerouslySetInnerHTML={renderMarkdown(adviceMap[activeArea])}
+                    />
+                  ) : (
+                    <ul className="data-list">
+                      {activeInsight.fallbackAdvice.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  )}
+                </article>
+              </div>
             </div>
           </div>
         </div>
@@ -590,66 +716,109 @@ ${publicShareUrl}`;
 
       <section className="surface-card">
         <div className="surface-card__body result-actions">
-          <div className="result-action-board">
-            <article className="feature-card result-action-card">
-              <p className="result-summary__label">現在就能做</p>
-              <h3>優先行動</h3>
-              <ul className="data-list">
-                {analysis.actionNow.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </article>
+            <div className="result-section-heading">
+              <div>
+                <p className="eyebrow">更多內容</p>
+                <h3>這個分數怎麼來的</h3>
+              </div>
+            </div>
 
-            <article className="feature-card result-action-card result-action-card--prepare">
-              <p className="result-summary__label">提前準備</p>
-              <h3>接下來要留意</h3>
-              <ul className="data-list">
-                {analysis.actionPrepare.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </article>
+            <div className="result-disclosure-list">
+              <details className="result-disclosure" open>
+                <summary>分數來源</summary>
+                <div className="result-disclosure__body">
+                  <p className="caption">{analysis.explanations.headline}</p>
+                  <ul className="data-list">
+                    {analysis.explanations.method.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </details>
+            </div>
           </div>
-        </div>
       </section>
+        </>
+      ) : null}
 
       <div id="share-capture-target" className="share-capture share-capture--hidden" aria-hidden="true">
         <div className="share-capture__content">
           <div className="share-capture__header">
-            <p className="share-capture__brandline">{BRAND_NAME}</p>
-            <h3 className="share-capture__title">{shareTitle}</h3>
+            <p className="share-capture__brandline">CLIMATE LIFE REPORT</p>
             <p className="share-capture__brand">{analysis.regionName}</p>
           </div>
 
           <div className="share-capture__hero">
-            <div className="share-capture__role">
-              <p className="share-capture__label">你的角色</p>
-              <h4>{personaName}</h4>
-              <p className="share-capture__persona-line">{analysis.headline}</p>
+            <div className="share-capture__role-panel">
+              <div className="share-capture__role-copy">
+                <p className="share-capture__label">你的氣候人格</p>
+                <h3 className="share-capture__title">{heroTitle}</h3>
+                <p className="share-capture__persona-line">{heroSummary}</p>
+              </div>
+              {analysis.personalityProfile.image ? (
+                <img
+                  src={analysis.personalityProfile.image}
+                  alt={personaName}
+                  className="share-capture__avatar"
+                />
+              ) : null}
             </div>
 
-            <div className="share-capture__summary-grid">
-              {shareSummaryItems.map((item) => (
-                <div key={item.label} className="share-capture__summary-item">
-                  <p className="share-capture__summary-label">{item.label}</p>
-                  <h4 className="share-capture__summary-value">{item.value}</h4>
-                </div>
-              ))}
+            <div className="share-capture__score-panel">
+              <p className="share-capture__label">地區平均分數</p>
+              <div className="share-capture__score">
+                <span>{analysis.overallScore}</span>
+                <small>/100</small>
+              </div>
+              <p>{analysis.overallComparison}</p>
             </div>
           </div>
 
-          <div className="share-capture__visual">
+          <div className="share-capture__area-grid">
+            {shareAreaItems.map((item) => (
+              <div
+                key={item.label}
+                className={`share-capture__area-item share-capture__area-item--${item.tone}`}
+              >
+                <p className="share-capture__summary-label">{item.label}</p>
+                <h4 className="share-capture__summary-value">{item.value} / 100</h4>
+              </div>
+            ))}
+          </div>
+
+          <div className="share-capture__bottom">
+            <div className="share-capture__relationship-grid">
+              <div className="share-capture__relationship-item">
+                <p className="share-capture__summary-label">合拍人格</p>
+                {matchProfile.image ? (
+                  <img src={matchProfile.image} alt={matchProfile.name} />
+                ) : null}
+                <h4>{matchProfile.name || "資料整理中"}</h4>
+              </div>
+              <div className="share-capture__relationship-item">
+                <p className="share-capture__summary-label">拒絕往來戶</p>
+                {mismatchProfile.image ? (
+                  <img src={mismatchProfile.image} alt={mismatchProfile.name} />
+                ) : null}
+                <h4>{mismatchProfile.name || "資料整理中"}</h4>
+              </div>
+            </div>
+
             <div className="share-capture__radar-panel">
-              <p className="share-capture__label">偏好輪廓</p>
+              <p className="share-capture__label">偏好雷達圖</p>
               <PreferenceRadar
                 scores={analysis.preferenceScores}
-                theme="dark"
-                height={210}
-                outerRadius={68}
-                labelSize={11}
+                height={184}
+                outerRadius={54}
+                labelSize={10}
+                margin={{ top: 18, right: 34, bottom: 16, left: 34 }}
               />
             </div>
+          </div>
+
+          <div className="share-capture__footer">
+            <span>{BRAND_NAME}</span>
+            <span>{publicShareUrl}</span>
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { CalendarDays, MapPinned, UserRound } from "lucide-react";
 import { PrimaryButton } from "./ui/Buttons";
 import SectionHeader from "./ui/SectionHeader";
 
@@ -73,17 +74,20 @@ export default function UserInputForm({ onSave, userData = {} }) {
   }
 
   return (
-    <div className="surface-card profile-form-panel">
+    <div className="surface-card profile-form-panel profile-form-panel--mobile profile-form-panel--cover">
       <div className="surface-card__body profile-form-panel__body">
         <SectionHeader
           eyebrow="資料輸入"
           title="填寫基本資料"
-          description="只需要四個欄位。"
+          description=""
         />
 
-        <div className="form-fields">
-          <div className="field">
-            <label htmlFor="name">你的名字</label>
+        <div className="form-fields form-fields--mobile">
+          <div className="field field--boxed">
+            <label htmlFor="name">
+              <UserRound size={16} />
+              你的名字
+            </label>
             <input
               id="name"
               name="name"
@@ -95,8 +99,11 @@ export default function UserInputForm({ onSave, userData = {} }) {
             />
           </div>
 
-          <div className="field">
-            <label htmlFor="age">目前年齡</label>
+          <div className="field field--boxed">
+            <label htmlFor="age">
+              <CalendarDays size={16} />
+              目前年齡
+            </label>
             <input
               id="age"
               name="age"
@@ -111,8 +118,11 @@ export default function UserInputForm({ onSave, userData = {} }) {
             />
           </div>
 
-          <div className="field">
-            <label htmlFor="county">所在縣市</label>
+          <div className="field field--boxed field--location">
+            <label htmlFor="county">
+              <MapPinned size={16} />
+              所在縣市
+            </label>
             <select
               id="county"
               name="county"
@@ -131,8 +141,11 @@ export default function UserInputForm({ onSave, userData = {} }) {
           </div>
 
           {formData.county ? (
-            <div className="field">
-              <label htmlFor="town">所在鄉鎮</label>
+            <div className="field field--boxed field--location">
+              <label htmlFor="town">
+                <MapPinned size={16} />
+                所在鄉鎮
+              </label>
               <select
                 id="town"
                 name="town"
@@ -152,9 +165,16 @@ export default function UserInputForm({ onSave, userData = {} }) {
           ) : null}
         </div>
 
-        <PrimaryButton type="button" onClick={() => onSave?.(formData)} disabled={!isValid()} size="lg">
-          進入 2055 未來情境
-        </PrimaryButton>
+        <div className="profile-form-actions">
+          <PrimaryButton
+            type="button"
+            onClick={() => onSave?.(formData)}
+            disabled={!isValid()}
+            size="lg"
+          >
+            探索你的氣候占卜
+          </PrimaryButton>
+        </div>
       </div>
     </div>
   );

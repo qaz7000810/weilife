@@ -1,4 +1,4 @@
-import { useReducer, useState } from "react";
+import { useCallback, useReducer, useState } from "react";
 import { addDoc, collection } from "firebase/firestore";
 import QuizIntro from "./components/QuizIntro";
 import QuizSection from "./components/QuizSection";
@@ -47,6 +47,14 @@ function App() {
     handleGoTo(steps.SCENARIO);
   };
 
+  const handleScenarioStoryReady = useCallback((storyPayload) => {
+    setUserData((prev) => ({
+      ...prev,
+      scenarioStory: storyPayload.story,
+      scenarioStoryKey: storyPayload.key,
+    }));
+  }, []);
+
   return (
     <AppShell
       currentStep={step}
@@ -72,6 +80,7 @@ function App() {
         <StorySegment
           userData={userData}
           stepContent={stepMeta[step]}
+          onStoryReady={handleScenarioStoryReady}
           onNext={() => handleGoTo(steps.QUIZ)}
         />
       ) : null}

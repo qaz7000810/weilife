@@ -6,6 +6,8 @@ function corsHeaders(origin?: string) {
   const allowed = new Set([
     "https://susan-33333.github.io",
     "https://qaz7000810.github.io",
+    "http://127.0.0.1:5173",
+    "http://localhost:5173",
   ]);
   const allowOrigin = allowed.has(origin || "") ? origin : "https://qaz7000810.github.io";
   return {

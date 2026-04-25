@@ -1,5 +1,5 @@
-export const APP_TITLE = "未來氣候占卜師 未LIFE";
-export const APP_SUBTITLE = "個人化氣候生活報告";
+export const APP_TITLE = "氣候占卜師 未LIFE";
+export const APP_SUBTITLE = "";
 
 export const steps = {
   INTRO: "INTRO",
@@ -37,7 +37,7 @@ export const stepMeta = {
   },
   [steps.SCENARIO]: {
     label: "情境",
-    title: "閱讀 2055 情境",
+    title: "閱讀約 30 年後情境",
     description: "進入你的未來場景。",
   },
   [steps.QUIZ]: {

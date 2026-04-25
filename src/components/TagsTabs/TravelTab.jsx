@@ -70,7 +70,7 @@ const TravelTab = ({ data, regionDisplay, advice, loading, userData }) => {
     const base = parseFloat(hotExtremeBase);
     const fut = parseFloat(hotExtremeFuture);
     const diff = parseFloat(hotExtremeChange);
-    hotExtremeStr = `未來每年極端高溫日數將從 ${base} 天大幅上升到 ${fut} 天，增加 ${diff} 天。這將使夏季熱浪、悶熱日明顯增加，交通舒適度大幅下降。`;
+    hotExtremeStr = `未來每年極端高溫日數將從 ${base} 天大幅上升到 ${fut} 天，增加 ${diff} 天。這將使夏季熱浪、悶熱日明顯增加，遊憩舒適度大幅下降。`;
   } else {
     hotExtremeStr = "資料不足。";
   }
@@ -80,7 +80,7 @@ const TravelTab = ({ data, regionDisplay, advice, loading, userData }) => {
   return (
     <div className="flex flex-col items-center space-y-4 pt-4 text-left w-full max-w-[850px] mx-auto">
       <h2 className="text-xl font-bold text-gray-800">
-        未來 30 年，你在 {regionKey.replace(/_/g, " ")} 的旅遊樂活度
+        未來 30 年，你在 {regionKey.replace(/_/g, " ")} 的遊憩樂活度
       </h2>
       <RingChart score={data.score} />
 

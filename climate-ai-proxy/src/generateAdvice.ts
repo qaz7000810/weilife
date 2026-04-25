@@ -89,9 +89,9 @@ export default {
       const regionName = safeRegion.replace(/_/g, " ");
       let userPrompt = "";
 
-      if (safeTab === "交通") {
+      if (safeTab === "出行" || safeTab === "交通") {
         userPrompt = `
-你正在為「${regionName}」撰寫一段給一般使用者看的交通生活建議，背景是西元 2055 年的氣候變遷情境。
+你正在為「${regionName}」撰寫一段給一般使用者看的出行生活建議，背景是西元 2055 年的氣候變遷情境。
 
 以下是當地氣候趨勢摘要：
 ${summaryStr}
@@ -102,7 +102,7 @@ ${summaryStr}
 
 【這代表什麼】
 用 2 句話說明：
-- 未來在 ${regionName}，交通或移動上最值得注意的變化是什麼
+- 未來在 ${regionName}，出行或移動上最值得注意的變化是什麼
 - 這些變化會怎麼影響通勤、上下學、外出安排
 
 【你可以怎麼做】
@@ -116,24 +116,24 @@ ${summaryStr}
 - 先講生活影響，再講建議
 - 語氣像平台內容，不像公文
 - 不要條列氣候指標定義
-- 不要寫成旅遊文章
+- 不要寫成遊憩文章
 - 不要使用「建議民眾」「應注意」這類官樣語氣
 - 全文控制在 130～180 字
         `.trim();
-      } else if (safeTab === "旅遊") {
+      } else if (safeTab === "遊憩" || safeTab === "旅遊") {
         userPrompt = `
-你正在為「${regionName}」撰寫一段給一般使用者看的旅遊生活建議，背景是西元 2055 年的氣候變遷情境。
+你正在為「${regionName}」撰寫一段給一般使用者看的遊憩生活建議，背景是西元 2055 年的氣候變遷情境。
 
 以下是當地氣候趨勢摘要：
 ${summaryStr}
 
-請不要直接重複資料，而是把資料翻成「未來去這裡旅遊時，最需要注意的生活感受與安排方式」。
+請不要直接重複資料，而是把資料翻成「未來在這裡遊憩或外出活動時，最需要注意的生活感受與安排方式」。
 
 請依照以下格式輸出，使用繁體中文：
 
 【這代表什麼】
 用 2 句話說明：
-- 未來在 ${regionName} 旅遊時，最需要注意的氣候風險是什麼
+- 未來在 ${regionName} 遊憩時，最需要注意的氣候風險是什麼
 - 這會怎麼影響外出時間、活動安排或裝備準備
 
 【你可以怎麼做】
@@ -253,6 +253,8 @@ function corsHeaders(origin?: string) {
   const allowed = new Set([
     "https://susan-33333.github.io",
     "https://qaz7000810.github.io",
+    "http://127.0.0.1:5173",
+    "http://localhost:5173",
   ]);
 
   const allowOrigin = allowed.has(origin || "")

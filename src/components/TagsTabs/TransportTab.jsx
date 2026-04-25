@@ -72,7 +72,7 @@ const TransportTab = ({ data, regionDisplay, advice, loading, userData }) => {
     const base = parseFloat(hotExtremeBase);
     const fut = parseFloat(hotExtremeFuture);
     const diff = parseFloat(hotExtremeChange);
-    hotExtremeStr = `未來每年極端高溫日數將從 ${base} 天大幅上升到 ${fut} 天，增加 ${diff} 天。這將使夏季熱浪、悶熱日明顯增加，交通舒適度大幅下降。`;
+    hotExtremeStr = `未來每年極端高溫日數將從 ${base} 天大幅上升到 ${fut} 天，增加 ${diff} 天。這將使夏季熱浪、悶熱日明顯增加，出行舒適度大幅下降。`;
   } else {
     hotExtremeStr = "資料不足。";
   }

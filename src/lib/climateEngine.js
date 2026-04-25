@@ -19,6 +19,8 @@ const PERSONA_MAP = {
   D: "T4",
 };
 
+const VALID_PERSONA_ANSWERS = new Set(Object.keys(PERSONA_MAP));
+
 const PREFERENCE_LABELS = {
   happiness: "生活彈性",
   adaptability: "調適意願",
@@ -29,14 +31,14 @@ const PREFERENCE_LABELS = {
 
 const AREA_LABELS = {
   living: "居住",
-  transport: "交通",
-  travel: "旅遊",
+  transport: "出行",
+  travel: "遊憩",
 };
 
 const PERSONA_STYLE_SUMMARY = {
   T1: "你比較在意空間的濕度、降雨節奏與居住環境是否友善，遇到水氣與雨勢變化時會特別有感。",
   T2: "你對氣候波動很敏感，尤其在高溫、舒適度與空氣變化上，通常會比別人更早察覺不對勁。",
-  T3: "你重視陽光、戶外感與靠近自然的生活節奏，旅遊與休閒場景會是你最先感受到變化的地方。",
+  T3: "你重視陽光、戶外感與靠近自然的生活節奏，遊憩與休閒場景會是你最先感受到變化的地方。",
   T4: "你傾向先觀察風險再做安排，遇到不穩定的氣候條件時，會直覺地尋找更穩妥的生活方式。",
 };
 
@@ -99,8 +101,12 @@ export function calculatePreferenceScores(answers = []) {
 }
 
 export function getDominantAnswer(answers = []) {
+  const normalizedAnswers = answers
+    .map((answer) => (typeof answer === "string" ? answer.trim().toUpperCase() : ""))
+    .filter((answer) => VALID_PERSONA_ANSWERS.has(answer));
   const counts = { A: 0, B: 0, C: 0, D: 0 };
-  answers.forEach((answer) => {
+
+  normalizedAnswers.forEach((answer) => {
     if (counts[answer] !== undefined) {
       counts[answer] += 1;
     }
@@ -111,6 +117,37 @@ export function getDominantAnswer(answers = []) {
 
 export function getPersonalityType(answers = []) {
   return PERSONA_MAP[getDominantAnswer(answers)] || "T1";
+}
+
+export function calculatePersonaComposition(answers = [], profilesData = {}, baseUrl = "/") {
+  const normalizedAnswers = answers
+    .map((answer) => (typeof answer === "string" ? answer.trim().toUpperCase() : ""))
+    .filter((answer) => VALID_PERSONA_ANSWERS.has(answer));
+  const counts = { A: 0, B: 0, C: 0, D: 0 };
+
+  normalizedAnswers.forEach((answer) => {
+    if (counts[answer] !== undefined) {
+      counts[answer] += 1;
+    }
+  });
+
+  const answeredCount = normalizedAnswers.length;
+  const total = answeredCount || 1;
+
+  return Object.entries(PERSONA_MAP).map(([answerKey, personaType]) => {
+    const profile = profilesData[personaType] || {};
+    const count = counts[answerKey] || 0;
+    const percentage = Math.round((count / total) * 100);
+
+    return {
+      type: personaType,
+      count,
+      answeredCount,
+      percentage,
+      name: profile.name || personaType,
+      image: profile.image ? `${baseUrl}${profile.image}` : null,
+    };
+  });
 }
 
 export function getPreferenceExtremes(scores = {}) {
@@ -223,8 +260,8 @@ export function scoreToStatus(score) {
 function describeAreaScore(area, score) {
   const status = scoreToStatus(score);
   if (area === "living") return `居住面向目前屬於「${status.label}」，代表你未來會更常感受到住家舒適、排水與居住安全的差異。`;
-  if (area === "transport") return `交通面向目前屬於「${status.label}」，代表你在外出、通勤與移動安排上，會明顯受到高溫或暴雨影響。`;
-  return `旅遊面向目前屬於「${status.label}」，代表你安排出遊、戶外活動與休閒方式時，需要更常判斷天氣風險。`;
+  if (area === "transport") return `出行面向目前屬於「${status.label}」，代表你在外出、通勤與移動安排上，會明顯受到高溫或暴雨影響。`;
+  return `遊憩面向目前屬於「${status.label}」，代表你安排出遊、戶外活動與休閒方式時，需要更常判斷天氣風險。`;
 }
 
 function buildEvidenceItem(label, value, detail) {
@@ -264,8 +301,8 @@ function buildLifeImpact(area, score, signals) {
   }
 
   return score < 55
-    ? `你安排旅遊時，會比別人更常遇到熱浪、下雨或行程被迫改動的情況。`
-    : `你的旅遊彈性相對較高，但在夏季升溫與強降雨變化下，戶外活動仍需要更早安排。`;
+    ? `你安排遊憩活動時，會比別人更常遇到熱浪、下雨或行程被迫改動的情況。`
+    : `你的遊憩彈性相對較高，但在夏季升溫與強降雨變化下，戶外活動仍需要更早安排。`;
 }
 
 function buildStoryCallbacks(signals) {
@@ -421,7 +458,7 @@ function buildAreaAnalysis(area, score, signals, profile) {
       focusTitle: buildAreaFocusTitle(area),
       summary: describeAreaScore(area, score),
       primaryRisk: buildAreaPrimaryRisk(area, signals),
-      reason: `交通分數主要由高溫、雨日變化與強降雨風險推估，判斷你在通勤與移動上的脆弱點。`,
+      reason: `出行分數主要由高溫、雨日變化與強降雨風險推估，判斷你在通勤與移動上的脆弱點。`,
       comparison: compareToBaseline(score, SCORE_BASELINES.transport),
       lifeImpact: buildLifeImpact(area, score, signals),
       personalNote: buildAreaPersonalNote(area, personaPreference),
@@ -443,7 +480,7 @@ function buildAreaAnalysis(area, score, signals, profile) {
         ),
         buildEvidenceItem("雨日降雨強度", signals.rainIntensity || "資料不足", rainfall.detail),
       ],
-      explanation: `你的角色偏好顯示你在移動上較重視「${personaPreference}」。如果偏好與當地氣候條件衝突，交通分數會明顯下降。`,
+      explanation: `你的角色偏好顯示你在移動上較重視「${personaPreference}」。如果偏好與當地氣候條件衝突，出行分數會明顯下降。`,
       bestReminder: "先替自己準備一條熱天版路線和一條暴雨版路線，移動壓力會立刻少很多。",
       fallbackAdvice: [
         "把最常使用的兩條通勤路線做成晴天版與暴雨版，並預留轉乘方案。",
@@ -459,13 +496,13 @@ function buildAreaAnalysis(area, score, signals, profile) {
     focusTitle: buildAreaFocusTitle(area),
     summary: describeAreaScore(area, score),
     primaryRisk: buildAreaPrimaryRisk(area, signals),
-    reason: `旅遊分數主要由熱浪、溫度變化與降雨波動判讀，評估戶外活動的舒適度與安全性。`,
+    reason: `遊憩分數主要由熱浪、溫度變化與降雨波動判讀，評估戶外活動的舒適度與安全性。`,
     comparison: compareToBaseline(score, SCORE_BASELINES.travel),
     lifeImpact: buildLifeImpact(area, score, signals),
     personalNote: buildAreaPersonalNote(area, personaPreference),
     evidenceTitle: "你排行程時，哪種天氣最需要先防",
     feelingTitle: "你會在旅途中先感受到什麼",
-    reminderTitle: "最適合你的旅遊提醒",
+    reminderTitle: "最適合你的遊憩提醒",
     evidence: [
       buildEvidenceItem(
         "7 月月均溫變化",
@@ -481,10 +518,10 @@ function buildAreaAnalysis(area, score, signals, profile) {
         heat.detail
       ),
     ],
-    explanation: `你的角色偏好顯示你傾向「${personaPreference}」。旅遊分數反映的是當地氣候是否支撐這種休閒方式。`,
+    explanation: `你的角色偏好顯示你傾向「${personaPreference}」。遊憩分數反映的是當地氣候是否支撐這種休閒方式。`,
     bestReminder: "先決定能不能舒服地待在戶外，再決定去哪裡，旅行會比硬撐更自在。",
     fallbackAdvice: [
-      "下一次安排旅遊時，先看高溫、午後雷雨與遮蔭條件，再決定景點順序。",
+      "下一次安排遊憩活動時，先看高溫、午後雷雨與遮蔭條件，再決定景點順序。",
       "把清晨時段留給戶外活動，把午後改成室內或可快速撤離的備案行程。",
     ],
   };
@@ -536,14 +573,14 @@ function buildActionPools(signals, areaScores) {
       pool.push({
         priority: 78 - index,
         now: "把大眾運輸、室內轉乘點與替代通勤方式設成極端天氣日的優先方案。",
-        prepare: "為工作、上學或照護情境建立可切換的交通備援，包括提早出門或臨時遠距安排。",
+        prepare: "為工作、上學或照護情境建立可切換的出行備援，包括提早出門或臨時遠距安排。",
       });
     }
     if (key === "travel" && value < 55) {
       pool.push({
         priority: 76 - index,
-        now: "下一次旅遊先看熱浪、午後降雨與遮蔭條件，再決定景點順序與停留時間。",
-        prepare: "把旅遊規劃從看景點改成看風險條件，建立你自己的氣候友善旅行清單。",
+        now: "下一次遊憩活動先看熱浪、午後降雨與遮蔭條件，再決定景點順序與停留時間。",
+        prepare: "把遊憩規劃從看景點改成看風險條件，建立你自己的氣候友善活動清單。",
       });
     }
   });
@@ -552,7 +589,7 @@ function buildActionPools(signals, areaScores) {
     {
       priority: 40,
       now: "把你所在地的天氣警報、淹水資訊與高溫提醒加入手機通知，讓決策從『知道』變成『提早準備』。",
-      prepare: "每半年回頭檢查一次居住、通勤與旅遊習慣，確認它們是否仍適合新的氣候條件。",
+      prepare: "每半年回頭檢查一次居住、通勤與遊憩習慣，確認它們是否仍適合新的氣候條件。",
     },
     {
       priority: 30,
@@ -616,7 +653,7 @@ function buildSummarySignals(signals) {
         signals.hotDays.change !== null
           ? `${formatDelta(signals.hotDays.change, " 天")}`
           : "資料不足",
-      description: "用來判斷熱浪對通勤、照護與旅遊的壓力。",
+      description: "用來判斷熱浪對通勤、照護與遊憩的壓力。",
     },
     {
       label: "降雨風險",
@@ -670,22 +707,22 @@ export function buildFallbackStory({ projectedAge, regionName, signals }) {
 
   const templates = {
     heat: [
-      `2055 年的 ${regionName}，${ageLabel} 已經很少把中午當成可以自在出門的時段。夏天比現在又熱了 ${summerRise}，一年裡大約有 ${hotDays} 讓你一出門就先找陰影、先想哪裡有冷氣，原本十分鐘就能完成的小事，現在也得重新挑時間。`,
+      `約 30 年後的 ${regionName}，${ageLabel} 已經很少把中午當成可以自在出門的時段。夏天比現在又熱了 ${summerRise}，一年裡大約有 ${hotDays} 讓你一出門就先找陰影、先想哪裡有冷氣，原本十分鐘就能完成的小事，現在也得重新挑時間。`,
       `午後的天氣也不像以前那麼好猜。雨不一定天天下，但一來就會打亂節奏，捷運出口積水、騎車臨時改道、原本熟悉的巷口變得更需要先看天氣再決定怎麼走。你開始把移動想成一種安排，而不是出門就能直接完成的動作。`,
       `連假或週末旅行也變了。你還是想去遠一點的地方散心，但現在會把戶外行程挪到清晨，把午後留給室內場館或能隨時撤退的備案。這段故事不是在誇張未來，而是在提醒你：當 ${heat.label}、${rain.label} 和生活安排疊在一起時，氣候變遷會先從日常節奏開始改寫你怎麼住、怎麼出門、怎麼旅行。`,
     ],
     storm: [
-      `到了 2055 年，${regionName} 的生活沒有一天看起來像災難片，卻常常在一場突然而急的雨裡被重新排序。${ageLabel} 早上出門時天色還算穩定，但午後常常在幾十分鐘內轉成大雨，路口排水變慢、騎樓擠滿躲雨的人，原本順手的通勤路線開始需要備案。`,
-      `熱也沒有缺席。夏季升溫約 ${summerRise}，高溫日數增加到約 ${hotDays}，所以你不只要閃雨，還得閃開最難受的曝曬時段。你會開始習慣提早出門、改搭有冷氣的交通工具，或把會議、採買和照顧安排集中在比較能忍受的時段裡。`,
+      `到了約 30 年後，${regionName} 的生活沒有一天看起來像災難片，卻常常在一場突然而急的雨裡被重新排序。${ageLabel} 早上出門時天色還算穩定，但午後常常在幾十分鐘內轉成大雨，路口排水變慢、騎樓擠滿躲雨的人，原本順手的通勤路線開始需要備案。`,
+      `熱也沒有缺席。夏季升溫約 ${summerRise}，高溫日數增加到約 ${hotDays}，所以你不只要閃雨，還得閃開最難受的曝曬時段。你會開始習慣提早出門、改搭有冷氣的出行工具，或把會議、採買和照顧安排集中在比較能忍受的時段裡。`,
       `旅行的方式也跟著變了。你不再只看目的地好不好玩，還會先看那一天的降雨型態、轉乘空間和是否有室內替代方案。這就是氣候教育真正想讓人看懂的地方：${rain.label} 不是單純的「會下雨」，而是會牽動移動、停留時間和整個生活節奏的變化。`,
     ],
     coastal: [
-      `2055 年的 ${regionName}，${ageLabel} 早就習慣先看天氣與潮位，再決定今天怎麼安排。白天的熱感比現在更直接，夏季升溫約 ${summerRise}，一旦太陽升高，戶外停留的時間就會被壓縮；但真正讓人提高警覺的，是雨勢、積水與低窪地帶那種慢慢逼近的不安感。`,
+      `約 30 年後的 ${regionName}，${ageLabel} 早就習慣先看天氣與潮位，再決定今天怎麼安排。白天的熱感比現在更直接，夏季升溫約 ${summerRise}，一旦太陽升高，戶外停留的時間就會被壓縮；但真正讓人提高警覺的，是雨勢、積水與低窪地帶那種慢慢逼近的不安感。`,
       `午後如果遇到大雨，路口的排水速度、回家路上的低窪點、停車的位置，這些以前不太會被放在心上的事，現在都變成日常判斷的一部分。通勤不再只是選最快的路，而是選在 ${rain.label} 或 ${sea.label} 條件下，還能安全回家的路。`,
-      `連想去海邊、港邊或水岸散步的旅行方式也改了。你會把海線行程挪到清晨或天氣穩定的日子，把午後改成室內展館、在地市場或可快速撤離的點。這段故事要你看到的是：海平面、暴雨和熱浪不一定會一次爆發，但會一起改變你對居住安全、移動效率和旅遊自由度的想像。`,
+      `連想去海邊、港邊或水岸散步的活動方式也改了。你會把海線行程挪到清晨或天氣穩定的日子，把午後改成室內展館、在地市場或可快速撤離的點。這段故事要你看到的是：海平面、暴雨和熱浪不一定會一次爆發，但會一起改變你對居住安全、移動效率和遊憩自由度的想像。`,
     ],
     seasonal: [
-      `2055 年的 ${regionName}，氣候變遷不是每天都用劇烈災害提醒你它的存在，而是慢慢改寫你對四季的期待。${ageLabel} 發現夏天比以前更長、更熱，升溫約 ${summerRise}，一年裡出現約 ${hotDays} 的高溫日數讓你開始主動調整出門時間，原本理所當然的白天活動變得需要先看體感。`,
+      `約 30 年後的 ${regionName}，氣候變遷不是每天都用劇烈災害提醒你它的存在，而是慢慢改寫你對四季的期待。${ageLabel} 發現夏天比以前更長、更熱，升溫約 ${summerRise}，一年裡出現約 ${hotDays} 的高溫日數讓你開始主動調整出門時間，原本理所當然的白天活動變得需要先看體感。`,
       `下雨的方式也跟著變了。雖然不一定每週都遇到豪雨，但雨勢一旦集中，就足以讓捷運出口、巷口積水或接送安排變得麻煩。你開始更留意天氣通知、轉乘空間和回家路上的遮蔭與排水，因為移動已經不是只考慮快不快，而是舒不舒服、穩不穩定。`,
       `旅行也是最容易察覺變化的地方。以前說走就走，現在會先選比較不曝曬的時段、先找可以臨時改成室內的景點，甚至重新思考哪個季節才真的適合出遊。這些轉變看起來很生活化，卻正是氣候變遷最真實的教育現場：它先改變的，往往不是一個抽象名詞，而是你安排一天與一趟旅程的方法。`,
     ],
@@ -721,9 +758,9 @@ function buildAreaPrimaryRisk(area, signals) {
   }
 
   if ((signals.hotDays.change ?? 0) >= 60) {
-    return `主要風險是戶外停留時間被高溫壓縮，旅遊不再只看景點，也得看遮蔭、補水與能不能快速切換到室內。`;
+    return `主要風險是戶外停留時間被高溫壓縮，遊憩不再只看景點，也得看遮蔭、補水與能不能快速切換到室內。`;
   }
-  return `主要風險是行程被陣雨或天氣波動切碎，交通接駁、備案景點與停留節奏會比以前更重要。`;
+  return `主要風險是行程被陣雨或天氣波動切碎，出行接駁、備案景點與停留節奏會比以前更重要。`;
 }
 
 function buildAreaPersonalNote(area, personaPreference) {
@@ -734,6 +771,25 @@ function buildAreaPersonalNote(area, personaPreference) {
     return `你會特別在意移動時是否省力、可預期，以及整體節奏是否符合你偏好的「${personaPreference}」。`;
   }
   return `你會特別在意旅行能不能維持原本想像中的節奏，而不是一路被天氣牽著走；這和你偏好的「${personaPreference}」有關。`;
+}
+
+function buildRelatedPersonalityProfile(profilesData, profileName, baseUrl) {
+  if (!profileName) return null;
+
+  const relatedEntry = Object.entries(profilesData).find(
+    ([, profile]) => profile?.name === profileName
+  );
+
+  if (!relatedEntry) {
+    return { name: profileName, image: null };
+  }
+
+  const [type, profile] = relatedEntry;
+  return {
+    type,
+    name: profile.name,
+    image: profile.image ? `${baseUrl}${profile.image}` : null,
+  };
 }
 
 export function buildResultAnalysis({
@@ -752,13 +808,17 @@ export function buildResultAnalysis({
     ...rawProfile,
     type: personalityType,
     image: rawProfile.image ? `${baseUrl}${rawProfile.image}` : null,
+    matchProfile: buildRelatedPersonalityProfile(profilesData, rawProfile.match, baseUrl),
+    mismatchProfile: buildRelatedPersonalityProfile(profilesData, rawProfile.mismatch, baseUrl),
   };
+  const personaComposition = calculatePersonaComposition(userData.answers || [], profilesData, baseUrl)
+    .sort((left, right) => right.percentage - left.percentage);
 
   const regionScores = regionScoresData[regionKey] || {};
   const areaScores = {
     living: parseMetric(regionScores["居住"]) ?? 50,
-    transport: parseMetric(regionScores["交通"]) ?? 50,
-    travel: parseMetric(regionScores["旅遊"]) ?? 50,
+    transport: parseMetric(regionScores["出行"]) ?? 50,
+    travel: parseMetric(regionScores["遊憩"]) ?? 50,
   };
   const overallScore =
     parseMetric(totalScoresData[regionKey]?.["綜合"]) ??
@@ -783,6 +843,7 @@ export function buildResultAnalysis({
     projectedAge: getProjectedAge(userData.age),
     lifeStageLabel: getLifeStageLabel(getProjectedAge(userData.age)),
       personalityProfile,
+      personaComposition,
       preferenceScores,
       preferenceExtremes,
       lifeSummary: buildLifeSummary(personalityType, signals, preferenceExtremes),
@@ -801,7 +862,7 @@ export function buildResultAnalysis({
       headline: "人格與輪廓來自你的問答偏好，三大生活面向分數則來自地區氣候資料；平台把兩者交叉後，轉譯成比較容易理解的生活語言。",
       method: [
         "角色結果與氣候適應輪廓：根據 8 題生活選擇問答，描出你比較容易在意哪些氣候變化。",
-        "三大面向分數：來自地區資料中的居住、交通、旅遊風險分數與綜合評分。",
+        "三大面向分數：來自地區資料中的居住、出行、遊憩風險分數與綜合評分。",
         "生活影響與行動建議：把氣候訊號和你的角色偏好交叉後，轉譯成比較容易理解的日常情境。",
       ],
     },

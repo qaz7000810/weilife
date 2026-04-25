@@ -15,9 +15,11 @@ function AppShell({
 }) {
   const MotionHeader = motion.header;
   const MotionMain = motion.main;
+  const isIntro = !showHeader;
+  const stepClassName = currentStep ? `app-shell--step-${String(currentStep).toLowerCase()}` : "";
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${isIntro ? "app-shell--intro" : ""} ${stepClassName}`.trim()}>
       <div className="app-shell__backdrop" aria-hidden="true">
         <div className="app-shell__wash app-shell__wash--coral" />
         <div className="app-shell__wash app-shell__wash--sky" />
@@ -25,7 +27,7 @@ function AppShell({
         <div className="app-shell__texture" />
       </div>
 
-      <div className="app-shell__inner">
+      <div className={`app-shell__inner ${isIntro ? "app-shell__inner--intro" : ""}`}>
         {showHeader ? (
           <MotionHeader
             initial={{ opacity: 0, y: -16 }}
@@ -65,7 +67,7 @@ function AppShell({
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="app-shell__content"
+          className={`app-shell__content ${isIntro ? "app-shell__content--intro" : ""}`}
         >
           {children}
         </MotionMain>

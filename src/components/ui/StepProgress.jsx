@@ -29,7 +29,7 @@ function StepProgress({
     <div className="progress-card">
       <div className="progress-card__top">
         <div>
-          <p className="progress-card__label">流程</p>
+          <p className="progress-card__label">進度</p>
           <p className="progress-card__value">{currentMeta?.label}</p>
         </div>
 
@@ -38,7 +38,7 @@ function StepProgress({
           {canGoBack ? (
             <button type="button" onClick={onBack} className="icon-button">
               <ArrowLeft size={16} />
-              返回上一步
+              回上一頁
             </button>
           ) : null}
         </div>
